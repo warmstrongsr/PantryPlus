@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit A Address{% endblock %}
+
+{% block header %}
+<h1>{{ address.user.username }},</h1>
+
+<h4> Edit: {{ address.first_name }} {{ address.last_name }}</h4>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col">
+        <div class="card mt-4">
+            <div class="card-body">
+                <form action="" method="post">
+                    {{ form.csrf_token }}
+
+                    {{ form.first_name.label }}
+                    {{ form.first_name(class="form-control") }}
+
+                    {{ form.last_name.label }}
+                    {{ form.last_name(class="form-control") }}
+
+                    {{ form.phone.label }}
+                    {{ form.phone(class="form-control") }}
+
+                    {{ form.address.label }}
+                    {{ form.address(class="form-control") }}
+
+                    {{ form.submit(class="btn btn-primary w-100 mt-3",
+                    value="Edit Address") }}
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

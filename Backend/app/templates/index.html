@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block header %}
+<h1>Phonebook</h1>
+{% if current_user.is_authenticated %}
+<h5>Nice to see you again, {{ current_user.username.title() }}!</h5>
+{% else %}
+<h5>Please Sign Up or Log In to Create or Update Address Books</h5>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left 2/3 Column -->
+    <div class="col-12 col-lg-14 order-1 order-lg-0">
+
+
+        <div class="container mt-3">
+
+
+            </table>
+            <thead class="thead-dark">
+                <table
+                    class="table table-bordered  - table-group-divider - table-hover - text-bg-light">
+                    <thead>
+                        <tr>
+                            <th>Lastname</th>
+                            <th>Firstname</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Date Added</th>
+                            <th>User ID | User Name</th>
+
+
+                        </tr>
+                    </thead>
+                    {% for address in addresses %}
+
+                    <tbody>
+                        <tr>
+                            <td>{{ address.last_name }}</td>
+                            <td>{{ address.first_name }}</td>
+                            <td>{{ address.phone }}</td>
+                            <td>{{ address.address }}</td>
+                            <td>{{ address.date_created }}</td>
+                            <td>{{ address.user.username }}</td>
+
+                        </tr>
+                        {% endfor %}
+
+
+                    </tbody>
+                </table>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="row bg-secondary py-4">
+    <div class="col text-center text-white">
+        <div class="position-sticky top-0">
+            {% block center %}
+            <h1>{{ "Cards" }}</h1>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<div class="row d-flex justify-content-center">
+    <!-- Left 2/3 Column -->
+    <div class="col-12 col-lg-8 order-1 order-lg-0">
+
+        {% for address in addresses %}
+        <div class="card mt-3">
+            <div class="row g-0">
+                <div class="col-md-4">
+                </div>
+
+                <div class="card-body">
+
+                    <h5 class="card-title">{{ address.last_name + ", " +
+                        address.first_name }}</h5>
+
+                    <p class="card-text">{{ address.address }}<br>
+                        {{address.phone }}<br>
+
+                    <h6 class="card-subtitle text-muted">Date Added: {{
+                        address.date_created}}</h6>
+
+                    {% if address.user %}
+                    {% if address.user == current_user %}
+                    <small class="card-subtitle">By: You</small>
+                    {% else %}
+                    <small class="card-subtitle">By: {{
+                        address.user.username.title() }}</small>
+                    {% endif %}
+                    {% else %}
+                    <small class="card-subtitle">By: Unknown</small>
+                    {% endif %}
+                    <div class="card-footer bg-white-subtle">
+                        {% if address.user == current_user %}
+                        <a href="{{ url_for('edit_address', address_id=address.id) }}"
+                            class="btn btn-success">Edit</a>
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteaddressModal-{{ address.id }}">
+                            Delete
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="deleteaddressModal-{{ address.id }}"
+            tabindex="-1" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            Delete {{ address.last_name, address.first_name }}?
+                        </h1>
+                        <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete {{ address.last_name,
+                        address.first_name }}? This
+                        action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <a href="{{ url_for('delete_address', address_id=address.id) }}"
+                            class="btn btn-danger">Delete Address</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+
+    </div>
+
+
+</div>
+
+
+
+
+{% endblock %}

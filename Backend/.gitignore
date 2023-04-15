@@ -1,0 +1,16 @@
+venv/
+
+# Also ignore the __pycache__
+__pycache__/
+
+# You can also put .vscode in as well. That is for Visual Studio Code Settings
+.vscode
+
+# If on a Mac, you can also add the .DS_Store  (In case I ever use one and want this as a reference)
+.DS_Store
+
+# Hide the .env file because that is where we keep secrets, keys, etc.
+.env
+
+# Ignore the SQLite database (for development/testing use only)
+app.db
