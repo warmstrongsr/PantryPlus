@@ -1,18 +1,16 @@
-import "./App.css";
 import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import AlertMessage from "../components/AlertMessage";
-import Navbar from "../components/Navbar";
-import CreatePost from "../views/CreatePost";
-import Home from "../views/Home";
-import Login from "../views/Login";
-import Signup from "../views/Signup";
-import SinglePost from "../views/SinglePost";
-import EditPost from "../views/EditPost";
+import Home from "./views/Home";
+import Login from "./views/Login";
+import Signup from "./views/Signup";
+import AlertMessage from "./components/AlertMessage";
+import Navbar from "./components/Navbar";
+import Create from "./views/CreatePost";
+import EditPost from "./views/EditPost";
 
 export default function App() {
-	// let name = "Will";
 	// const now = new Date();
+
 	const [loggedIn, setLoggedIn] = useState(
 		localStorage.getItem("token") ? true : false
 	);
@@ -20,17 +18,46 @@ export default function App() {
 	const [category, setCategory] = useState(null);
 	const [user, setUser] = useState({});
 
+	useEffect(() => {
+		if (loggedIn) {
+			async function fetchLoggedInUser() {
+				let myHeaders = new Headers();
+				const token = localStorage.getItem("token");
+				myHeaders.append("Authorization", `Bearer ${token}`);
+				let response = await fetch(
+					"https://kekambas-blog-api.onrender.com/api/me",
+					{
+						headers: myHeaders,
+					}
+				);
+				let data = await response.json();
+				if (data.error) {
+					console.warn(data.error);
+				} else {
+					setUser(data);
+				}
+			}
+			fetchLoggedInUser();
+		}
+	}, [loggedIn]);
+
 	function flashMessage(message, category) {
 		setMessage(message);
 		setCategory(category);
 	}
 
+	function logUserIn() {
+		setLoggedIn(true);
+	}
+
 	function logUserOut() {
 		setLoggedIn(false);
+		setUser({});
 		localStorage.removeItem("token");
-		localStorage.removeItem("tokenExp");
-		flashMessage("You have logged out", "primary");
+		// localStorage.removeItem('tokenExp');
+		flashMessage("You have logged out", "success");
 	}
+
 	return (
 		<>
 			<Navbar loggedIn={loggedIn} logUserOut={logUserOut} />
@@ -45,21 +72,21 @@ export default function App() {
 				<Routes>
 					<Route path="/" element={<Home user={user} loggedIn={loggedIn} />} />
 					<Route
-						path="/Frontend/capstone-fe/src/views/Signup.jsx"
+						path="/signup"
 						element={<Signup flashMessage={flashMessage} />}
 					/>
 					<Route
 						path="/login"
-						element={<Login flashMessage={flashMessage} logUserIn={loggedIn} />}
-					/>
-					<Route
-						path="/create"
 						element={
-							<CreatePost flashMessage={flashMessage} loggedIn={loggedIn} />
+							<Login flashMessage={flashMessage} logUserIn={logUserIn} />
 						}
 					/>
 					<Route
-						path="/Frontend/capstone-fe/src/views/EditPost.jsx"
+						path="/create"
+						element={<Create flashMessage={flashMessage} loggedIn={loggedIn} />}
+					/>
+					<Route
+						path="/edit/:postId"
 						element={
 							<EditPost flashMessage={flashMessage} loggedIn={loggedIn} />
 						}
@@ -69,4 +96,3 @@ export default function App() {
 		</>
 	);
 }
-

@@ -24,7 +24,7 @@ export default function Signup({ flashMessage }) {
 				password,
 			});
 
-			fetch("http://localhost:5000/api/users", {
+			fetch("https://kekambas-blog-api.onrender.com/api/users", {
 				method: "POST",
 				headers: myHeaders,
 				body: formData,
@@ -42,41 +42,47 @@ export default function Signup({ flashMessage }) {
 	};
 
 	return (
-		<>
-			<h3 className="text-center">Sign Up Here!</h3>
-			<form action="" onSubmit={handleSignup}>
-				<div className="form-group">
-					<input
-						type="text"
-						name="username"
-						className="form-control my-3"
-						placeholder="Enter Username"
-					/>
-					<input
-						type="text"
-						name="email"
-						className="form-control my-3"
-						placeholder="Enter Email"
-					/>
-					<input
-						type="password"
-						name="password"
-						className="form-control my-3"
-						placeholder="Enter Password"
-					/>
-					<input
-						type="password"
-						name="confirmPass"
-						className="form-control my-3"
-						placeholder="Confirm Password"
-					/>
-					<input
-						type="submit"
-						value="Sign Up"
-						className="btn btn-success w-100"
-					/>
+		<div className="row">
+			<div className="col">
+				<div className="card mt-3">
+					<div className="card-header text-center">Sign Up Here!</div>
+					<div className="card-body">
+						<form action="" onSubmit={handleSignup}>
+							<div className="form-group">
+								<input
+									type="text"
+									name="email"
+									className="form-control my-3"
+									placeholder="Enter Email"
+								/>
+								<input
+									type="text"
+									name="username"
+									className="form-control my-3"
+									placeholder="Enter Username"
+								/>
+								<input
+									type="password"
+									name="password"
+									className="form-control my-3"
+									placeholder="Enter Password"
+								/>
+								<input
+									type="password"
+									name="confirmPass"
+									className="form-control my-3"
+									placeholder="Confirm Password"
+								/>
+								<input
+									type="submit"
+									value="Sign Up"
+									className="btn btn-success w-100"
+								/>
+							</div>
+						</form>
+					</div>
 				</div>
-			</form>
-		</>
+			</div>
+		</div>
 	);
 }
