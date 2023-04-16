@@ -1,11 +1,24 @@
+import requests
 from app import app, db
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, jsonify
 # from fake_data import posts
 from app.forms import SignUpForm, LoginForm, AddressForm, SearchForm
 from app.models import User, Address
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
+
 # route decorators
+
+@app.route('/recipes')
+def get_recipes():
+    url = 'https://api.spoonacular.com/recipes/random'
+    params = {
+        'apiKey': 'dfe069817cab4c178abeed7f3b45d54f',
+        'number': 5
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    return jsonify(data)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
