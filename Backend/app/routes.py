@@ -1,9 +1,9 @@
 import requests
+from flask import Flask
 from app import app, db
-from flask import render_template, redirect, url_for, flash, jsonify
-# from fake_data import posts
+from flask import render_template, redirect, url_for, flash, session, jsonify
 from app.forms import SignUpForm, LoginForm, AddressForm, SearchForm
-from app.models import User, Address
+from app.models import User, Recipe, Saved_Recipe, Ingredient, Instructions, Equpiment
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 
