@@ -25,7 +25,7 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     def __repr__(self):
-        return f"<User user_id={self.id}|{self.username}>"
+        return f"<User user_id={self.user_id}|{self.username}>"
 
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
@@ -183,15 +183,14 @@ def connect_to_db(flask_app, db_uri='postgresql:///recipes', echo=True):
     
     print('Connection to database is established 😎')
     
-if __name__ == '__main__':
-    from server import app
+
     import os
     
-    # Drop and create database (reccomended on Stackoverflow)
-    os.system('dropdb recipes')
-    os.system('createdb recipes')
+    # # Drop and create database (reccomended on Stackoverflow)
+    # os.system('dropdb recipes')
+    # os.system('createdb recipes')
     
-    connect_to_db(app)
-    # table creations
-    db.create_all
+    # connect_to_db(app)
+    # # table creations
+    # db.create_all
 

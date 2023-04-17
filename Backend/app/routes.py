@@ -1,4 +1,4 @@
-import requests
+import requests 
 from flask import Flask
 from app import app, db
 from flask import render_template, redirect, url_for, flash, session, jsonify
@@ -8,6 +8,11 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 
 
 # route decorators
+
+@app.route('/')
+def hello():
+    return 'Hello World!'
+
 
 @app.route('/recipes')
 def get_recipes():
@@ -162,3 +167,66 @@ def delete_address(address_id):
     db.session.commit()
     flash(f"{address_to_delete.address} has been deleted", "info")
     return redirect(url_for('account'))
+
+from flask import render_template, request
+from app import app, db, login
+from app.models import User, Recipe, Ingredient, Saved_Recipe
+
+# route for user registration
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # get form data and create a new user
+        # ...
+
+    # show registration form
+        return render_template('register.html')
+
+# route for user login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # get form data and log in user
+        # ...
+
+    # show login form
+        return render_template('login.html')
+
+# route for user logout
+@app.route('/logout')
+@login_required
+def logout():
+    # log out user
+    # ...
+
+    # redirect to home page
+    return redirect(url_for('index'))
+
+# route for displaying a recipe
+@app.route('/recipe/<int:recipe_id>')
+def recipe(recipe_id):
+    # get the recipe with the given ID
+    # ...
+
+    # show the recipe
+    return render_template('recipe.html', recipe=recipe)
+
+# route for saving a recipe
+@app.route('/recipe/<int:recipe_id>/save')
+@login_required
+def save_recipe(recipe_id):
+    # save the recipe for the logged-in user
+    # ...
+
+    # redirect to the recipe page
+    return redirect(url_for('recipe', recipe_id=recipe_id))
+
+# route for viewing saved recipes
+@app.route('/saved-recipes')
+@login_required
+def saved_recipes():
+    # get the saved recipes for the logged-in user
+    # ...
+
+    # show the saved recipes
+    return render_template('saved_recipes.html', saved_recipes=saved_recipes)
