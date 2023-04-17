@@ -25,7 +25,7 @@ export default function App() {
 				const token = localStorage.getItem("token");
 				myHeaders.append("Authorization", `Bearer ${token}`);
 				let response = await fetch(
-					"https://kekambas-blog-api.onrender.com/api/me",
+					"https://api.spoonacular.com/recipes/random",
 					{
 						headers: myHeaders,
 					}

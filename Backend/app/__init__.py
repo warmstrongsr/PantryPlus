@@ -27,5 +27,5 @@ login.login_message_category = 'danger'
 # import all of the routes from the routes file and models from the models file into the current package
 from app import routes, models
 
-if __name__ == '__main__':
-    app.run()
+# if __name__ == '__main__':
+#     app.run()

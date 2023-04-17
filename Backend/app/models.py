@@ -2,7 +2,9 @@ from app import db, login
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from sqlalchemy import validates, validators
+
+
+# from sqlalchemy import validators
 
 # https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/  <-- One to many relationship model
 # User
@@ -30,6 +32,9 @@ class User(db.Model, UserMixin):
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
     
+    def get_id(self):
+        return str(self.user_id)
+    
     def as_dict(self):
         return {'user_id': self.user_id,
                 'email': self.email,
@@ -41,12 +46,13 @@ def get_a_user_by_id(user_id):
     return db.session.get(User, user_id)
 
 
+
 # User saved recipes
 class Saved_Recipe(db.Model):
     __tablename__ = 'saved_recipes'
     saved_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.recipe_id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_idd'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     favorited = db.Column(db.Boolean)
     tried = db.Column(db.Boolean)
     rating = db.Column(db.Integer)
@@ -58,7 +64,7 @@ class Saved_Recipe(db.Model):
     user = db.relationship('User', lazy='joined')
     
     def __repr__(self):
-        return f"<User\'s selected recipes recipe={self.recipe_id} user={self.user_id} was_favorited={self.favorite}>"
+        return f"<User\'s selected recipes recipe={self.recipe_id} user={self.user_id} was_favorited={self.favorited}>"
     
     def as_dict(self):
         return {'saved_id': self.saved_id,
@@ -75,7 +81,7 @@ class Recipe(db.Model):
     __tablename__ = 'recipes'
     recipe_id = db.Column(db.Integer, primary_key=True)
     title= db.Column(db.String)
-    image = db.Column(db.String)
+    # image = db.Column(db.String)
     servings = db.Column(db.Integer)
     sourceUrl = db.Column(db.String)
     cooking_mins = db.Column(db.Integer)
@@ -98,7 +104,7 @@ class Recipe(db.Model):
     def as_dict(self):
         return {'recipe_id': self.recipe_id,
                 'title': self.title,
-                'image': self.image,
+                # 'image': self.image,
                 'servings': self.servings,
                 'sourceUrl': self.sourceUrl,
                 'cooking_mins': self.cooking_mins,
@@ -108,11 +114,11 @@ class Recipe(db.Model):
                 'instructions': self.instructions,
                 'equipment': self.equipment}
         
-    @validates('image')
-    def validate_image(self, key, value):
-        # make sure the value is a valid URL
-        assert validators.url(value), 'Image URL must be valid'
-        return value        
+   
+    # def validate_image(self, key, value):
+    #     # make sure the value is a valid URL
+    #     assert validators.url(value), 'Image URL must be valid'
+    #     return value        
 
 class Ingredient(db.Model):
     __tablename__ = 'ingredients'
@@ -131,7 +137,7 @@ class Ingredient(db.Model):
     
     def as_dict(self):
         return {'name': self.name,
-            'rec_ing_id': self.rec_ing_id,
+            'recipe_ing_id': self.recipe_ing_id,
             'recipe_id': self.recipe_id,
             'ingredient_id': self.ingredient_id,
             'amount': self.amount,
