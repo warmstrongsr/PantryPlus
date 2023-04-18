@@ -36,7 +36,7 @@ export default function Sidebar({
 					<div className="card-body">
 						{page > 0 ? (
 							<button
-								className="btn btn-danger w-50"
+								className="btn btn-danger w-49"
 								onClick={() => setPage(page - 1)}
 							>
 								Page Down
@@ -44,7 +44,7 @@ export default function Sidebar({
 						) : null}
 						{posts.length >= lastPostIndex ? (
 							<button
-								className="btn btn-success w-50"
+								className="btn btn-success w-49"
 								onClick={() => setPage(page + 1)}
 							>
 								Page Up

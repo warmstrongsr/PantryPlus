@@ -8,7 +8,7 @@ import Sidebar from "../components/Sidebar";
 export default function Home({ user, loggedIn }) {
 	const dummyData = [
 		{
-			id: 1,
+			id: 640803,
 			title: "Crispy Buttermilk Fried Chicken",
 			image: "https://spoonacular.com/recipeImages/640803-312x231.jpg",
 			alt: "Crispy Buttermilk Fried Chicken",
@@ -18,8 +18,8 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Crispy-Buttermilk-Fried-Chicken-640803",
 		},
 		{
-			id: 2,
-			title: "Lemon and Garlic Slow Roasted Chicken",
+			id: 715574,
+			title: "Homemade Strawberry Shake",
 			image: "https://spoonacular.com/recipeImages/715574-312x231.jpg",
 			alt: "Homemade Strawberry Shake",
 			ingredients: [],
@@ -28,7 +28,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Lemon-and-Garlic-Slow-Roasted-Chicken-649495",
 		},
 		{
-			id: 3,
+			id: 1747693,
 			title: "Your Basic Low Carb Breakfast",
 			image: "https://spoonacular.com/recipeImages/1747693-312x231.jpg",
 			alt: "Your Basic Low Carb Breakfast",
@@ -38,7 +38,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Your-Basic-Low-Carb-Breakfast-1747693",
 		},
 		{
-			id: 4,
+			id: 650755,
 			title: "Mango Black Tea Skinny Cocktail",
 			image: "https://spoonacular.com/recipeImages/650755-312x231.jpg",
 			alt: "Mango Black Tea Skinny Cocktail",
@@ -48,7 +48,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Mango-Black-Tea-Skinny-Cocktail-650755",
 		},
 		{
-			id: 5,
+			id: 646216,
 			title: "Ham With Bourbon, Molasses, and Pecan Glaze",
 			image: "https://spoonacular.com/recipeImages/646216-312x231.jpg",
 			alt: "Ham With Bourbon, Molasses, and Pecan Glaze",
@@ -58,7 +58,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Ham-With-Bourbon,-Molasses,-and-Pecan-Glaze-646216",
 		},
 		{
-			id: 6,
+			id: 649495,
 			title: "Lemon and Garlic Slow Roasted Chicken",
 			image: "https://spoonacular.com/recipeImages/649495-312x231.jpg",
 			alt: "Lemon and Garlic Slow Roasted Chicken",
@@ -68,7 +68,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Lemon-and-Garlic-Slow-Roasted-Chicken-649495",
 		},
 		{
-			id: 7,
+			id: 649381,
 			title: "Lazy Cobbler",
 			image: "https://spoonacular.com/recipeImages/649381-312x231.jpg",
 			alt: "Lazy Cobbler",
@@ -77,7 +77,7 @@ export default function Home({ user, loggedIn }) {
 			sourceUrl: "https://spoonacular.com/recipes/Lazy-Cobbler-649381",
 		},
 		{
-			id: 8,
+			id: 641717,
 			title: "Duck Rumaki",
 			image: "https://spoonacular.com/recipeImages/641717-312x231.jpg",
 			alt: "Duck Rumaki",
@@ -86,7 +86,7 @@ export default function Home({ user, loggedIn }) {
 			sourceUrl: "https://spoonacular.com/recipes/Duck-Rumaki-641717",
 		},
 		{
-			id: 9,
+			id: 649722,
 			title: "Lemon Pepper Steak",
 			image: "https://spoonacular.com/recipeImages/649722-312x231.jpg",
 			alt: "Lemon Pepper Steak",
@@ -95,7 +95,7 @@ export default function Home({ user, loggedIn }) {
 			sourceUrl: "https://spoonacular.com/recipes/Lemon-Pepper-Steak-649722",
 		},
 		{
-			id: 10,
+			id: 640370,
 			title:
 				"Cranberry Fettuccine Tomato Cream Sauce With Shrimps and Scallops",
 			image: "https://spoonacular.com/recipeImages/640370-312x231.jpg",
@@ -106,7 +106,7 @@ export default function Home({ user, loggedIn }) {
 				"https://spoonacular.com/recipes/Cranberry-Fettuccine-Tomato-Cream-Sauce-With-Shrimps-and-Scallops-640370",
 		},
 		{
-			id: 11,
+			id: 633338,
 			title: "Bacon Wrapped Filet Mignon",
 			image: "https://spoonacular.com/recipeImages/633338-312x231.jpg",
 			alt: "Bacon Wrapped Filet Mignon",
