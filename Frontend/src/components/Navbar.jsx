@@ -8,7 +8,7 @@ export default function Navbar({ loggedIn, logUserOut }) {
 		<nav className="navbar navbar-expand-lg bg-body-tertiary">
 			<div className="container-fluid">
 				<Link className="navbar-brand" to="/">
-					Welcome
+					Eat UP!
 				</Link>
 				<button
 					className="navbar-toggler"

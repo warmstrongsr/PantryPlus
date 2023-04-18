@@ -9,8 +9,6 @@ import Create from "./views/CreatePost";
 import EditPost from "./views/EditPost";
 
 export default function App() {
-	// const now = new Date();
-
 	const [loggedIn, setLoggedIn] = useState(
 		localStorage.getItem("token") ? true : false
 	);
@@ -41,6 +39,26 @@ export default function App() {
 		}
 	}, [loggedIn]);
 
+	async function addRecipe(recipeData) {
+		try {
+			const token = localStorage.getItem("token");
+			const response = await fetch("/add_recipe", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify(recipeData),
+			});
+			const data = await response.json();
+			console.log(data);
+			flashMessage("Recipe added successfully", "success");
+		} catch (error) {
+			console.error(error);
+			flashMessage("Failed to add recipe", "error");
+		}
+	}
+
 	function flashMessage(message, category) {
 		setMessage(message);
 		setCategory(category);
@@ -54,7 +72,6 @@ export default function App() {
 		setLoggedIn(false);
 		setUser({});
 		localStorage.removeItem("token");
-		// localStorage.removeItem('tokenExp');
 		flashMessage("You have logged out", "success");
 	}
 
@@ -83,7 +100,13 @@ export default function App() {
 					/>
 					<Route
 						path="/create"
-						element={<Create flashMessage={flashMessage} loggedIn={loggedIn} />}
+						element={
+							<Create
+								addRecipe={addRecipe}
+								flashMessage={flashMessage}
+								loggedIn={loggedIn}
+							/>
+						}
 					/>
 					<Route
 						path="/edit/:postId"

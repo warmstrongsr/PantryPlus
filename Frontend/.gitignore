@@ -22,5 +22,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-Frontend/src/apikey.js
+secrets
 apikey.js

@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from pprint import pprint
+# from pprint import pprint
 from app import app, db, login
 from flask import (Flask, render_template, redirect, url_for, flash, session, jsonify, request)
 from app.models import User, Recipe, Saved_Recipe, Ingredient, Instructions, Equpiment
@@ -9,6 +9,12 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import check_password_hash, generate_password_hash
 from .models import User
 load_dotenv()
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 @app.route('/')
@@ -107,3 +113,42 @@ def saved_recipes():
     # show the recipes that were saved
     return render_template('saved_recipes.html', saved_recipes=saved_recipes)
 
+@app.route('/api/recipes', methods=['POST'])
+def create_recipe():
+    data = request.json
+    
+    # create a new recipe object
+    recipe = Recipe(title=data['title'],
+                    servings=data['servings'],
+                    sourceUrl=data['sourceUrl'],
+                    cooking_mins=data['cooking_mins'],
+                    prep_mins=data['prep_mins'],
+                    ready_mins=data['ready_mins'])
+                    
+    # add the recipe object to the database
+    db.session.add(recipe)
+    db.session.commit()
+    
+    # create recipe ingredients objects
+    for ingredient in data['ingredients']:
+        recipe_ingredient = Recipe_Ingredient(name=ingredient['name'],
+                                               amount=ingredient['amount'],
+                                               recipe=recipe)
+        db.session.add(recipe_ingredient)
+        
+    # create instructions objects
+    for i, instruction in enumerate(data['instructions']):
+        step_number = i + 1
+        instruction = Instructions(step_number=step_number,
+                                    step_text=instruction['text'],
+                                    recipe=recipe)
+        db.session.add(instruction)
+        
+    # create equipment objects
+    for equipment in data['equipment']:
+        equipment = Equipment(name=equipment['name'], recipe=recipe)
+        db.session.add(equipment)
+    
+    db.session.commit()
+    
+    return jsonify({'message': 'Recipe created successfully'})

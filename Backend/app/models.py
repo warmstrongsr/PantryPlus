@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 
+
 # from sqlalchemy import validators
 
 # https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/  <-- One to many relationship model
@@ -192,6 +193,7 @@ def connect_to_db(flask_app, db_uri='postgresql:///recipes', echo=True):
 
     import os
     
+
     # # Drop and create database (reccomended on Stackoverflow)
     # os.system('dropdb recipes')
     # os.system('createdb recipes')
