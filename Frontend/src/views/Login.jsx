@@ -6,7 +6,7 @@ export default function Login({ flashMessage, logUserIn }) {
 
 	async function handleLogin(event) {
 		event.preventDefault();
-		// console.log(event);
+		console.log(event);
 
 		let username = event.target.username.value;
 		let password = event.target.password.value;
@@ -16,7 +16,7 @@ export default function Login({ flashMessage, logUserIn }) {
 		myHeaders.append("Authorization", `Basic ${btoa(stringToEncode)}`);
 
 		let response = await fetch(
-			"https://kekambas-blog-api.onrender.com/api/token",
+			"localhost:5000",
 			{
 				method: "POST",
 				headers: myHeaders,
@@ -50,7 +50,7 @@ export default function Login({ flashMessage, logUserIn }) {
 		<div className="row">
 			<div className="col">
 				<div className="card mt-3">
-					<div className="card-header text-center">Log In Here!</div>
+					<div className="card-header text-center">Please Log In Here!</div>
 					<div className="card-body">
 						<form action="" onSubmit={handleLogin}>
 							<div className="form-group">

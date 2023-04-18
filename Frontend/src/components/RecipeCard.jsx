@@ -18,7 +18,9 @@ export default function LinkCard({ recipe, user, image }) {
 								<strong>Ingredients:</strong> {recipe.ingredients}
 							</p>
 							<a
-								href={recipe.spoonacular_source_url}
+								href={`https://spoonacular.com/recipes/${recipe.title
+									.split(" ")
+									.join("-")}-${recipe.id}`}
 								target="_blank"
 								rel="noopener noreferrer"
 								className="btn btn-primary"
@@ -29,7 +31,7 @@ export default function LinkCard({ recipe, user, image }) {
 								<>
 									<Link
 										to={`${recipe.id}`}
-										className="btn btn-success w-100 mt-2"
+										className="btn btn-success w-80 mt-4"
 									>
 										Edit
 									</Link>
