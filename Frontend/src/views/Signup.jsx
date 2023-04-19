@@ -24,7 +24,7 @@ export default function Signup({ flashMessage }) {
 				password,
 			});
 
-			fetch("https://kekambas-blog-api.onrender.com/api/users", {
+			fetch("http://localhost:5000/api/users", {
 				method: "POST",
 				headers: myHeaders,
 				body: formData,

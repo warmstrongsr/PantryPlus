@@ -15,13 +15,10 @@ export default function Login({ flashMessage, logUserIn }) {
 		let myHeaders = new Headers();
 		myHeaders.append("Authorization", `Basic ${btoa(stringToEncode)}`);
 
-		let response = await fetch(
-			"localhost:5000",
-			{
-				method: "POST",
-				headers: myHeaders,
-			}
-		);
+		let response = await fetch("http://127.0.0.1:5000/api/token", {
+			method: "POST",
+			headers: myHeaders,
+		});
 
 		let data = await response.json();
 

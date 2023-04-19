@@ -16,9 +16,7 @@ export default function EditPost({ loggedIn, flashMessage }) {
 
 	useEffect(() => {
 		async function fetchPostData() {
-			let response = await fetch(
-				`https://kekambas-blog-api.onrender.com/api/posts/${postId}`
-			);
+			let response = await fetch(`http://localhost:5000/api/recipes`);
 			let data = await response.json();
 			setPost(data);
 		}

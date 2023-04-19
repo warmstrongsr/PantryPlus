@@ -31,7 +31,7 @@ export default function CreatePost({ loggedIn, flashMessage }) {
 		let requestBody = JSON.stringify({ title, content });
 
 		// Make the fetch request
-		let response = await fetch("http://localhost:5000/api/posts", {
+		let response = await fetch("http://localhost:5000/api/recipes", {
 			method: "POST",
 			headers: myHeaders,
 			body: requestBody,
