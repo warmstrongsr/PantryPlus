@@ -8,7 +8,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 import requests
 import os
 import sys
-API_KEY = "dfe069817cab4c178abeed7f3b45d54f"
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
