@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %} Your Recipe Menu {% endblock %}
+
+{% block header %}
+<!-- <h1>Phonebook</h1> -->
+{% if current_user.is_authenticated %}
+<h1>{{ current_user.username.title() }}'s Menu</h1>
+{% else %}
+<h5>Please Sign Up or Log In to Create or Update Menus</h5>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left 2/3 Column -->
+    <div class="col-12 col-lg-14 order-1 order-lg-0">
+
+
+        <div class="container mt-3">
+
+
+            </table>
+            <!-- <thead class="thead-subtle - text-left"> -->
+            <table
+                class="table table-bordered  - table-group-divider - table-hover - bg-light-subtle - text-center">
+
+                <tr>
+                    <th>Name</th>
+                    <th>ID</th>
+                    <th>Date Saved</th>
+                    <th>Link</th>
+                    <th>User ID | User Name</th>
+
+
+                </tr>
+                </thead>
+                {% for recipe in recipes %}
+
+                <tbody>
+                    <tr>
+                        <td>{{ recipe.title }}</td>
+                        <td>{{ recipe.id }}</td>
+                        <td>{{ recipe.url }}</td>
+                        <td>{{ recipe.date_created }}</td>
+                        <td>{{ recipe.user.username }}</td>
+
+                    </tr>
+                    {% endfor %}
+
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+<div class="row d-flex justify-content-center">
+    <!-- Left 2/3 Column -->
+
+    <!-- <div class="row">
+    <!-- Left 2/3 Column -->
+    <div class="col-12 col-lg-6 order-0 order-lg-1">
+        {% for recipe in recipes %}
+        <div class="card mt-3">
+            <div class="card-body">
+
+                <h5 class="card-title">{{ recipe.last_name + ", " +
+                    recipe.first_name }}</h5>
+
+                <p class="card-text">{{ recipe.title }}<br>
+                    {{recipe.phone }}<br>
+
+                <h6 class="card-subtitle text-muted">Date Added: {{
+                    recipe.date_created}}</h6>
+
+                {% if recipe.user %}
+                {% if recipe.user == current_user %}
+                <small class="card-subtitle">By: You</small>
+                {% else %}
+                <small class="card-subtitle">By: {{
+                    recipe.user.username.title() }}</small>
+                {% endif %}
+                {% else %}
+                <small class="card-subtitle">By: Unknown</small>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                {% if recipe.user == current_user %}
+                <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
+                    class="btn btn-success">Edit</a>
+                <button type="button" class="btn btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleterecipeModal-{{ recipe.id }}">Delete</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+    </div>
+    <!-- Modal -->
+    {% for recipe in recipes %}
+    <div class="modal fade" id="deleterecipeModal-{{ recipe.id }}"
+        tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete
+                        {{ recipe.title }}?</h1>
+                    <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete {{ recipe.title }}? This
+                    action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Close</button>
+                    <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                        class="btn btn-danger">Delete
+                        Address</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}

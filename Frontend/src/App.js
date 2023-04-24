@@ -5,8 +5,7 @@ import Login from "./views/Login";
 import Signup from "./views/Signup";
 import AlertMessage from "./components/AlertMessage";
 import Navbar from "./components/Navbar";
-import Create from "./views/CreatePost";
-import EditPost from "./views/EditPost";
+import EditPost from "./views/EditRecipe";
 
 export default function App() {
 	const [loggedIn, setLoggedIn] = useState(
@@ -97,17 +96,7 @@ export default function App() {
 						element={
 							<Login flashMessage={flashMessage} logUserIn={logUserIn} />
 						}
-					/>
-					<Route
-						path="/create"
-						element={
-							<Create
-								addRecipe={addRecipe}
-								flashMessage={flashMessage}
-								loggedIn={loggedIn}
-							/>
-						}
-					/>
+				/>
 					<Route
 						path="/edit/:postId"
 						element={

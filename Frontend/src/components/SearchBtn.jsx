@@ -28,7 +28,7 @@ export default function SearchBtn({ handleSubmit }) {
 							</div>
 							{/* <!-- Form Row --> */}
 							<div className="row mt-5 mb-3">
-								<form onSubmit={handleFormSubmit} id="weatherForm">
+								<form onSubmit={handleFormSubmit} id="ingredientForm">
 									<div className="form-group form-inline">
 										<input
 											type="text"

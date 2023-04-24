@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function LinkCard({ recipe, user, image }) {
+export default function LinkCard({ recipe, user, image, summary }) {
 	return (
 		<>
 			<div className="card mt-3">
@@ -13,25 +13,39 @@ export default function LinkCard({ recipe, user, image }) {
 					<div className="col-md-8">
 						<div className="card-body">
 							<h6 className="card-subtitle text">{recipe.date_created}</h6>
-							<p className="card-text">{recipe.content}</p>
+							<p className="card-text">{recipe.summary}</p>
 							<p className="card-text">
-								<strong>Ingredients:</strong> {recipe.ingredients}
+								<strong>Ingredients:</strong> {recipe.title}
 							</p>
+
 							<a
 								href={`https://spoonacular.com/recipes/${recipe.title
 									.split(" ")
 									.join("-")}-${recipe.id}`}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="btn btn-primary"
+								className="btn btn-primary w-30"
+								style={{ width: 150, marginLeft: 20 }}
 							>
 								View on Spoonacular
+							</a>
+
+							<a
+								href={`https://spoonacular.com/recipes/${recipe.title
+									.split(" ")
+									.join("-")}-${recipe.id}`}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="btn btn-primary w-40"
+								style={{ width: 150, marginLeft: 30 }}
+							>
+								Favorite this Recipe
 							</a>
 							{recipe.author && recipe.author.username === user.username ? (
 								<>
 									<Link
 										to={`${recipe.id}`}
-										className="btn btn-success w-80 mt-4"
+										className="btn btn-success w-60 mt-4"
 									>
 										Edit
 									</Link>

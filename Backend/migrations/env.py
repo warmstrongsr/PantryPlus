@@ -2,7 +2,7 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
-
+API_KEY = "dfe069817cab4c178abeed7f3b45d54f"
 from alembic import context
 
 # this is the Alembic Config object, which provides

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search</title>
+</head>
+
+<body>
+    <div class="hero-image">
+        <div class="bg">
+            <div class="lightning flashit">
+                <div class="container">
+                    <!-- Header Row -->
+                    <div class="row mt-3">
+                        <div class="col text-white-50">
+                            <h1 class="text-center" id="top-header"></h1>
+                        </div>
+                    </div>
+                    <!-- Form Row -->
+                    <div class="row mt-5 mb-3">
+                        <form action="/" method="POST" id="ingredientForm">
+                            <div class="form-group form-inline">
+                                <input type="text" name="inputValue"
+                                    class="form-control w-100"
+                                    placeholder="Start entering your items."
+                                    value="{{ input_value }}" />
+                                <div class="container">
+                                    <input type="submit" value="Submit"
+                                        class="btn btn-outline-light btn-secondary w-100 mt-3 mb-3" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

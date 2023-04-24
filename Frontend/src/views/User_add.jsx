@@ -6,7 +6,7 @@ export default function CreatePost({ loggedIn, flashMessage }) {
 
 	useEffect(() => {
 		if (!loggedIn) {
-			flashMessage("You must be logged in to create a new post", "danger");
+			flashMessage("You must be logged in to add to favorites", "danger");
 			navigate("/login");
 		}
 	});
@@ -16,8 +16,8 @@ export default function CreatePost({ loggedIn, flashMessage }) {
 		e.preventDefault();
 
 		// Get the data from the form
-		let title = e.target.title.value;
-		let content = e.target.content.value;
+		let user_id = e.target.user_id.value;
+		let recipe_id = e.target.recipe_id.value;
 
 		// Get the token from localStorage
 		let token = localStorage.getItem("token");
@@ -28,14 +28,14 @@ export default function CreatePost({ loggedIn, flashMessage }) {
 		myHeaders.append("Authorization", `Bearer ${token}`);
 
 		// Set up the request body
-		let requestBody = JSON.stringify({ title, content });
+		let requestBody = JSON.stringify({ user_id , recipe_id });
 
 		// Make the fetch request
-		let response = await fetch("http://localhost:5000/api/recipes", {
-			method: "POST",
-			headers: myHeaders,
-			body: requestBody,
-		});
+		// let response = await fetch("http://localhost:5000/api/add_favorite", {
+		// 	method: "POST",
+		// 	headers: myHeaders,
+		// 	body: requestBody,
+		// });
 
 		let data = await response.json();
 

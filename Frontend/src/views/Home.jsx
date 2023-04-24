@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { API_KEY } from "../components/secrets/apikey";
 import SearchBtn from "../components/SearchBtn";
 import RecipeCard from "../components/RecipeCard";
@@ -115,6 +115,25 @@ export default function Home({ user, loggedIn }) {
 			sourceUrl:
 				"https://spoonacular.com/recipes/Bacon-Wrapped-Filet-Mignon-633338",
 		},
+		{
+			id: 665734,
+			title: "Zucchini Chicken Omelette",
+			image: "https://spoonacular.com/recipeImages/665734-312x231.jpg",
+			alt: "Zucchini Chicken Omelette",
+			ingredients: [],
+			instructions: "",
+			sourceUrl:
+				"https://spoonacular.com/recipes/Zucchini-Chicken-Omelette-665734",
+		},
+		{
+			id: 633314,
+			title: "Bacon Ice Cream",
+			image: "https://spoonacular.com/recipeImages/633314-312x231.jpg",
+			alt: "Bacon Ice Cream",
+			ingredients: [],
+			instructions: "",
+			sourceUrl: "https://spoonacular.com/recipes/Bacon-Ice-Cream-633314",
+		},
 	];
 
 	const [posts, setPosts] = useState(dummyData);
@@ -164,8 +183,8 @@ export default function Home({ user, loggedIn }) {
 
 
 
-	const firstPostIndex = page * 10;
-	const lastPostIndex = firstPostIndex + 10;
+	const firstPostIndex = page * 5;
+	const lastPostIndex = firstPostIndex + 5;
 
 	return (
 		<div className="row">
