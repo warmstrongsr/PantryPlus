@@ -134,7 +134,7 @@ def create_recipe():
         return redirect(url_for('account'))
     return render_template('create.html', form=form)
 
-
+# Edit a recipe
 @app.route('/edit/<recipe_id>', methods=["GET", "POST"])
 @login_required
 def edit_recipe(recipe_id):
@@ -164,7 +164,7 @@ def edit_recipe(recipe_id):
     form.recipe.data = recipe_to_edit.recipe
     return render_template('edit.html', form=form, recipe=recipe_to_edit)
 
-
+# Delete a recipe from the database
 @app.route('/delete/<recipe_id>')
 @login_required
 def delete_recipe(recipe_id):
@@ -178,6 +178,17 @@ def delete_recipe(recipe_id):
     flash(f"{recipe_to_delete.recipe} has been deleted", "info")
     return redirect(url_for('account'))
 
+
+# Favorite a recipe and add to DB
+@app.route('/recipe/<int:recipe_id>/favorite')
+@login_required
+def favorite_recipe(recipe_id):
+    recipe = Recipe.query.get(recipe_id)
+    if recipe:
+        current_user.favorite_recipes.append(recipe)
+        db.session.commit()
+        flash(f"{recipe.title} added to favorites!")
+    return redirect(url_for('index'))
 
 
 
