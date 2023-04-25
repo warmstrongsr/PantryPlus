@@ -1,43 +1,43 @@
-from app import app, forms, db
-from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
-# from fake_data import posts
+from app import app, db, forms, models
+from flask import render_template, redirect, url_for, flash, jsonify, request
+from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
-from app.models import User, Recipe, favorites
+from app.models import User, Recipe, favorites, db
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests
-import os
-import sys
 
-bp = Blueprint("recipes", __name__, url_prefix="/recipes")
+spoonacular_api_key = API_KEY
+
+
+
 
 from app import routes, models
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = forms.SearchForm()
-    recipes = Recipe.query.all()
+    if form.validate_on_submit():
+        input_value = form.search_term.data
+        return redirect(url_for('search', search_term=input_value))
+    recipes = models.Recipe.query.all()
     return render_template('index.html', form=form, recipes=recipes)
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/search', methods=['GET', 'POST'])
 def search():
     form = forms.SearchForm()
     if form.validate_on_submit():
         input_value = form.search_term.data
-        return render_template('results.html', input_value=input_value)
-    return redirect(url_for('index'))
+        api_key = spoonacular_api_key
+        url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={input_value}&apiKey={api_key}'
+        response = requests.get(url)
+        if response.status_code == 200:
+            results = response.json()
+            return render_template('results.html', input_value=input_value, results=results, form=SearchForm())
 
-
-# @app.route('/search', methods=['GET', 'POST'])
-# def search():
-#     form = SearchForm()
-#     if form.validate_on_submit():
-#         input_value = form.search_term.data
-#         # Query the database to get search results
-#         results = db.session.query(Item).filter(Item.name.like(f'%{input_value}%')).all()
-#         return render_template('index.html', form=form, results=results)
-#     return render_template('index.html', form=form)
-
-
+        else:
+            flash('Error in API request')
+    return render_template('index.html', form=form)
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -184,7 +184,7 @@ def favorite_recipe(recipe_id):
         flash(f"{recipe.title} added to favorites!")
     return redirect(url_for('index'))
 
-@bp.route("/<int:recipe_id>/favorite", methods=["POST"])
+@app.route("/<int:recipe_id>/favorite", methods=["POST"])
 @login_required
 def toggle_favorite(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)

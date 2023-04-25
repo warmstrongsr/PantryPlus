@@ -4,10 +4,7 @@ from wtforms.validators import InputRequired, EqualTo, Length
 
 
 class RecipeForm(FlaskForm):
-    first_name = StringField('First Name', validators=[InputRequired()])
-    last_name = StringField('Last Name', validators=[InputRequired()])
-    phone = StringField('Phone', validators=[InputRequired(), Length(min=10,max=20, message="Please enter a valid phone number.")])
-    address = StringField('Address', validators=[InputRequired()])
+    recipe = StringField('Recipe', validators=[InputRequired()])
     search_term = StringField('Search Term')
     submit = SubmitField('Submit Address')
     
@@ -35,5 +32,6 @@ class SearchForm(FlaskForm):
     
     
 class IngredientForm(FlaskForm):
+    ingredient = StringField('Ingredient', validators=[InputRequired()])
     search_term = StringField('Search Term')
     submit= SubmitField('Ingredient')

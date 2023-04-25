@@ -6,6 +6,7 @@
 <h1>Pantry Plus2</h1>
 {% if current_user.is_authenticated %}
 <h6>Nice to see you again, {{ current_user.username.title() }}!</h6>
+
 {% else %}
 <h6>Please Sign Up or Log In to Create or Update Address Books</h6>
 {% endif %}
@@ -16,15 +17,9 @@
 <head>
     <title>DummyDataStorage | "Homepage Recipe Items"</title>
 </head>
-<h1>Recipes</h1>
-<ul>
-    {% for recipe in recipes %}
-    <li>{{ recipe.title }}</li>
-    {% endfor %}
-</ul>
 
-<body>
-    <div class="row row-cols-1 row-cols-md-3 mt-3">
+<div class="container" style="border-radius: 0">
+    <div class="row row-cols-1 row-cols-md-3 mt-3 ">
         {% for recipe in recipes %}
         <div class="col mb-4">
             <div class="card h-100">
@@ -34,10 +29,10 @@
                     <h6 class="card-title">{{ recipe.title }}</h6>
                     <a href="{{ recipe.link }}" target="_blank"
                         class="btn btn-primary">View on Spoonacular</a>
-                    {% if current_user.is_authenticated %}
+                    <!-- {% if current_user.is_authenticated %} -->
                     <a href="{{ url_for('add_to_favorites', recipe_id=recipe.id) }}"
                         class="btn btn-outline-primary">Add to Favorites</a>
-                    {% endif %}
+                    <!-- {% endif %} -->
                 </div>
             </div>
         </div>
@@ -50,7 +45,7 @@
                     <h6 class="card-title">Crispy Buttermilk Fried Chicken</h6>
                     <a href="https://spoonacular.com/recipes/crispy-buttermilk-fried-chicken-640803"
                         target="_blank" rel="noopener noreferrer"
-                        class="btn btn-primary">View on Spoonacular</a>
+                        class="btn btn-primary w-50 ">View on Spoonacular</a>
                 
 
                 </div>
@@ -159,8 +154,10 @@
             </div>
         </div>
     </div>
-          
-            
+            {% block center %}
+            <h1>{{ "Cards" }}</h1>
+            {% endblock %}
+     <div class="container-fluid"       
     <div class="card mt-3">
         <div class="card-header">Lemon and Garlic Slow Roasted Chicken</div>
         <div class="row g-0">
@@ -180,7 +177,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    
 
     <div class="card mt-3">
         <div class="card-header">Red Wine Stewed Oxtail</div>
@@ -302,8 +299,10 @@
 
 
         </div>
+        </div>
 
 
+    </div>
     </div>
 
     {% endblock %}

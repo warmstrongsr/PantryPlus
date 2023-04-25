@@ -57,16 +57,17 @@ class Recipe(db.Model):
         return f"<Recipe {self.id}|{self.title}>"
 
     def to_dict(self):
-        currrent_user = User.query.get(current_user_id)
-        is_favorite = currrent_user in self.favorited_by.all()
+        current_user_id = getattr(current_user, "id", None)
+        current_user = User.query.get(current_user_id)
+        is_favorite = current_user in self.favorited_by.all()
         return {
-            'id': self.id,
-            'title': self.title,
-            'link': self.link,
-            'date_created': self.date_created,
-            'author': User.query.get(self.user_id).to_dict(), 
-            'is_favorite': True if self.user_id in self.favorites else False
-        }
+            "id": self.id,
+            "title": self.title,
+            "link": self.link,
+            "date_created": self.date_created,
+            "author": User.query.get(self.user_id).to_dict(),
+            "is_favorite": is_favorite,
+    }
 
     def update(self, data):
         for field in data:
