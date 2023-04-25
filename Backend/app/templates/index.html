@@ -11,17 +11,37 @@
 {% endif %}
 {% endblock %}
 
-
 {% block content %}
-<!DOCTYPE html>
-<html>
 
 <head>
     <title>DummyDataStorage | "Homepage Recipe Items"</title>
 </head>
+<h1>Recipes</h1>
+<ul>
+    {% for recipe in recipes %}
+    <li>{{ recipe.title }}</li>
+    {% endfor %}
+</ul>
 
 <body>
     <div class="row row-cols-1 row-cols-md-3 mt-3">
+        {% for recipe in recipes %}
+        <div class="col mb-4">
+            <div class="card h-100">
+                <img src="{{ recipe.image }}" class="card-img-top"
+                    alt="{{ recipe.title }}">
+                <div class="card-body">
+                    <h6 class="card-title">{{ recipe.title }}</h6>
+                    <a href="{{ recipe.link }}" target="_blank"
+                        class="btn btn-primary">View on Spoonacular</a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('add_to_favorites', recipe_id=recipe.id) }}"
+                        class="btn btn-outline-primary">Add to Favorites</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         <div class="col mb-4">
             <div class="card h-100">
                 <img src="https://spoonacular.com/recipeImages/640803-312x231.jpg"
@@ -31,6 +51,7 @@
                     <a href="https://spoonacular.com/recipes/crispy-buttermilk-fried-chicken-640803"
                         target="_blank" rel="noopener noreferrer"
                         class="btn btn-primary">View on Spoonacular</a>
+                
 
                 </div>
             </div>

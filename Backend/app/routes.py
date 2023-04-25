@@ -1,30 +1,24 @@
 from app import app, forms, db
-from flask import render_template, redirect, url_for, flash, jsonify, request
-
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
 # from fake_data import posts
 from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
-from app.models import User, Recipe
+from app.models import User, Recipe, favorites
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests
 import os
 import sys
 
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
-
-
-
+bp = Blueprint("recipes", __name__, url_prefix="/recipes")
 
 from app import routes, models
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     form = forms.SearchForm()
-    return render_template('index.html', form=form)
+    recipes = Recipe.query.all()
+    return render_template('index.html', form=form, recipes=recipes)
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET', 'POST'])
 def search():
     form = forms.SearchForm()
     if form.validate_on_submit():
@@ -190,7 +184,16 @@ def favorite_recipe(recipe_id):
         flash(f"{recipe.title} added to favorites!")
     return redirect(url_for('index'))
 
-
+@bp.route("/<int:recipe_id>/favorite", methods=["POST"])
+@login_required
+def toggle_favorite(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    if current_user in recipe.favorited_by.all():
+        recipe.favorited_by.remove(current_user)
+    else:
+        recipe.favorited_by.append(current_user)
+    db.session.commit()
+    return jsonify({"success": True})
 
 # @app.route('/', methods=['GET', 'POST'])
 # def index():
@@ -206,5 +209,3 @@ def favorite_recipe(recipe_id):
     
     
     
-if __name__ == '__main__':
-    app.run(debug=True)

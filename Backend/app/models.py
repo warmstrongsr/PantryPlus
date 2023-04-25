@@ -9,8 +9,9 @@ from app import db, login
 login_manager = LoginManager()
 
 favorites = db.Table('favorites',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id')))
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True))
+
  
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,6 +21,8 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(75), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    favorites = db.relationship('Recipe', secondary=favorites, lazy='dynamic',
+        backref=db.backref('favorited_by', lazy='dynamic'))
    
 
     def __init__(self, **kwargs):
@@ -54,13 +57,15 @@ class Recipe(db.Model):
         return f"<Recipe {self.id}|{self.title}>"
 
     def to_dict(self):
+        currrent_user = User.query.get(current_user_id)
+        is_favorite = currrent_user in self.favorited_by.all()
         return {
             'id': self.id,
             'title': self.title,
             'link': self.link,
             'date_created': self.date_created,
             'author': User.query.get(self.user_id).to_dict(), 
-            # 'is_favorite': True if self.user_id in self.favorites else False
+            'is_favorite': True if self.user_id in self.favorites else False
         }
 
     def update(self, data):

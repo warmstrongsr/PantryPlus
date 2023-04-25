@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UserInfo | {% block title %}Base{% endblock %}</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet"
@@ -19,8 +20,10 @@
         {% include 'alerts.html' %}
     </div>
 
-    <div class="row bg-secondary py-5">
+    <div class="row bg-secondary py-3">
         <div class="col text-center text-white">
+       
+
             {% block header %}
             <h1>{{ "Welcome Pantry Plus2" }}</h1>
             {% endblock %}
@@ -36,3 +39,27 @@
 </body>
 
 </html>
+
+<script>
+    const pageUpButton = document.getElementById("page-up");
+    const pageDownButton = document.getElementById("page-down");
+    
+    <button type="button" class="btn btn-primary btn-block">Button 1</button>
+    const pageHeight = window.innerHeight;
+
+    let currentPage = 0;
+
+    pageUpButton.addEventListener("click", () => {
+        if (currentPage > 0) {
+            window.scrollBy(0, -pageHeight);
+            currentPage--;
+        }
+    });
+
+    pageDownButton.addEventListener("click", () => {
+        if (currentPage < document.body.scrollHeight / pageHeight - 1) {
+            window.scrollBy(0, pageHeight);
+            currentPage++;
+        }
+    });
+</script>
