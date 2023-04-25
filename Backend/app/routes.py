@@ -22,22 +22,55 @@ def index():
     recipes = models.Recipe.query.all()
     return render_template('index.html', form=form, recipes=recipes)
 
-
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search', methods=['GET'])
 def search():
     form = forms.SearchForm()
-    if form.validate_on_submit():
-        input_value = form.search_term.data
+    input_value = request.args.get('search_term')
+    
+    if input_value:
         api_key = spoonacular_api_key
         url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={input_value}&apiKey={api_key}'
         response = requests.get(url)
+        
         if response.status_code == 200:
             results = response.json()
-            return render_template('results.html', input_value=input_value, results=results, form=SearchForm())
-
+            return render_template('results.html', input_value=input_value, results=results, form=form)
         else:
             flash('Error in API request')
     return render_template('index.html', form=form)
+
+
+@app.route('/results/<search_term>', methods=['GET'])
+def results(search_term):
+    api_key = spoonacular_api_key
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    response = requests.get(url)
+    form = forms.SearchForm()
+
+    if response.status_code == 200:
+        results_data = response.json()
+        return render_template('results.html', input_value=search_term, results=results_data, form=form)
+    else:
+        flash('Error in API request')
+        return redirect(url_for('index'))
+
+
+# @app.route('/search', methods=['GET', 'POST'])
+# def search():
+#     form = forms.SearchForm()
+#     if request.method == 'POST':
+#         if form.validate_on_submit():
+#             input_value = form.search_term.data
+#             api_key = spoonacular_api_key
+#             url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={input_value}&apiKey={api_key}'
+#             response = requests.get(url)
+#             if response.status_code == 200:
+#                 results = response.json()
+#                 return render_template('results.html', input_value=input_value, results=results, form=SearchForm())
+#             else:
+#                 flash('Error in API request')
+#     return render_template('index.html', form=form)
+
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -195,17 +228,6 @@ def toggle_favorite(recipe_id):
     db.session.commit()
     return jsonify({"success": True})
 
-# @app.route('/', methods=['GET', 'POST'])
-# def index():
-#     form = SearchForm()
-#     if form.validate_on_submit():
-#         search_term = form.search_term.data
-#         recipes = Recipe.query.filter((Recipe.first_name.ilike(f"%{search_term}%")) | (Recipe.last_name.ilike(f"%{search_term}%")) | (Recipe.phone.ilike(f"%{search_term}%")) | (Recipe.recipe.ilike(f"%{search_term}%"))).order_by(Recipe.last_name.asc()).all()
-#     else:
-#         recipes = Recipe.query.order_by(Recipe.last_name.asc()).all()
 
-    # return render_template('index.html', recipes=recipes, form=form)
-    
-    
     
     

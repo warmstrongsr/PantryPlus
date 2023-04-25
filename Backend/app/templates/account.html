@@ -13,62 +13,13 @@
 
 {% block content %}
 
-<div class="row">
-    <!-- Left 2/3 Column -->
-    <div class="col-12 col-lg-14 order-1 order-lg-0">
-
-
-        <div class="container mt-3">
-
-
-            </table>
-            <!-- <thead class="thead-subtle - text-left"> -->
-            <table
-                class="table table-bordered  - table-group-divider - table-hover - bg-light-subtle - text-center">
-
-                <tr>
-                    <th>Name</th>
-                    <th>ID</th>
-                    <th>Date Saved</th>
-                    <th>Link</th>
-                    <th>User ID | User Name</th>
-
-
-                </tr>
-                </thead>
-                {% for recipe in recipes %}
-
-                <tbody>
-                    <tr>
-                        <td>{{ recipe.title }}</td>
-                        <td>{{ recipe.id }}</td>
-                        <td>{{ recipe.url }}</td>
-                        <td>{{ recipe.date_created }}</td>
-                        <td>{{ recipe.user.username }}</td>
-
-                    </tr>
-                    {% endfor %}
-
-
-                </tbody>
-            </table>
-
-        </div>
-    </div>
-</div>
-
 <div class="row d-flex justify-content-center">
-    <!-- Left 2/3 Column -->
-
-    <!-- <div class="row">
-    <!-- Left 2/3 Column -->
     <div class="col-12 col-lg-6 order-0 order-lg-1">
         {% for recipe in recipes %}
         <div class="card mt-3">
             <div class="card-body">
 
-                <h5 class="card-title">{{ recipe.title+ ", " +
-                    recipe.first_name }}</h5>
+                <h5 class="card-title">{{ recipe.title }}</h5>
 
                 <p class="card-text">{{ recipe.title }}<br>
                     {{recipe.title }}<br>
@@ -95,15 +46,30 @@
                     data-bs-toggle="modal"
                     data-bs-target="#deleterecipeModal-{{ recipe.id }}">Delete</button>
                 {% endif %}
+                {% if current_user.is_authenticated %}
+                <form method="post"
+                    action="{{ url_for('toggle_favorite', recipe_id=recipe.id) }}"
+                    class="d-inline">
+                    {{ form.csrf_token }}
+                    {% if current_user in recipe.favorited_by.all() %}
+                    <input type="submit" value="Unfavorite"
+                        class="btn btn-danger">
+                    {% else %}
+                    <input type="submit" value="Favorite"
+                        class="btn btn-success">
+                    {% endif %}
+                </form>
+                {% endif %}
             </div>
+
         </div>
         {% endfor %}
-        
+
     </div>
     <!-- Modal -->
     {% for recipe in recipes %}
-    <div class="modal fade" id="deleterecipeModal-{{ recipe.id }}"
-        tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleterecipeModal-{{ recipe.id }}" tabindex="-1"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
