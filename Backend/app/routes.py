@@ -5,6 +5,7 @@ from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests, random
+from math import ceil
 
 spoonacular_api_key = API_KEY
 
@@ -25,35 +26,32 @@ def search():
     input_value = request.args.get('search_term')
     
     if input_value:
-        api_key = spoonacular_api_key
-        # Use the findByIngredients endpoint and set the number of results to 100 (maximum allowed)
-        url = f'https://api.spoonacular.com/recipes/findByIngredients?ingredients={input_value}&number=20&apiKey={api_key}'
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            all_results = response.json()
-            # Randomly select 21 results from the available recipes
-            results = random.sample(all_results, min(21, len(all_results)))
-            return render_template('results.html', input_value=input_value, results=results, form=form)
-        else:
-            flash('Error in API request')
+        return redirect(url_for('results', search_term=input_value, page=1))
     return render_template('index.html', form=form)
 
 
-
-@app.route('/results/<search_term>', methods=['GET'])
-def results(search_term):
+@app.route('/results/<search_term>/<int:page>', methods=['GET'])
+def results(search_term, page=1):
     api_key = spoonacular_api_key
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=21&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    results_per_page = 15  # Set the desired number of results per page
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=50&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
     if response.status_code == 200:
-        results_data = response.json()
-        return render_template('results.html', input_value=search_term, results=results_data, form=form)
+        all_results_data = response.json()
+        offset = (page - 1) * results_per_page  # Calculate the offset based on the current page
+        results_data = all_results_data[offset:offset+results_per_page]
+        total_results = len(all_results_data)  # Get the total number of results
+        total_pages = ceil(total_results / results_per_page)
+        return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
     else:
         flash('Error in API request')
         return redirect(url_for('index'))
+
+
+
+
 
 
 # @app.route('/toggle_favorite/<int:recipe_id>', methods=['POST'])
