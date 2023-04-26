@@ -1,5 +1,5 @@
 from app import app, db, forms, models
-from flask import render_template, redirect, url_for, flash, jsonify, request
+from flask import render_template, redirect, url_for, flash, request
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
@@ -49,21 +49,31 @@ def results(search_term, page=1):
         flash('Error in API request')
         return redirect(url_for('index'))
 
+@app.route('/toggle_favorite', methods=['POST'])
+@login_required
+def toggle_favorite():
+    recipe_id = request.form.get('recipe_id')
+    recipe = Recipe.query.get(recipe_id)
+    
+    if not recipe:
+        # If the recipe is not in the database, create it/save
+        recipe = Recipe(id=recipe_id, title=request.form.get('recipe_title'), user_id=current_user.id)
+        db.session.add(recipe)
+        db.session.commit()
 
+    if current_user in recipe.favorited_by.all():
+        # Remove the recipe from the user's favorites
+        current_user.favorites.remove(recipe)
+        db.session.commit()
+        flash('Recipe removed from favorites.', 'success')
+    else:
+        # Add the recipe to the user's favorites
+        current_user.favorites.append(recipe)
+        db.session.commit()
+        flash('Recipe added to favorites.', 'success')
 
+    return redirect(request.referrer or url_for('index'))
 
-
-
-# @app.route('/toggle_favorite/<int:recipe_id>', methods=['POST'])
-# @login_required
-# def toggle_favorite(recipe_id):
-#     recipe = Recipe.query.get_or_404(recipe_id)
-#     if current_user in recipe.favorited_by:
-#         recipe.favorited_by.remove(current_user)
-#     else:
-#         recipe.favorited_by.append(current_user)
-#     db.session.commit()
-#     return redirect(request.referrer)
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -137,50 +147,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/create', methods=["GET", "POST"])
-@login_required
-def create_recipe():
-    form = RecipeForm()
-    if form.validate_on_submit():
-        # Get the data from the form
-        recipe = form.recipe.data or None
-        user_id = current_user.id
-        # Create an instance of Recipe with form data AND auth user ID
-        new_recipe = Recipe(recipe=recipe, user_id=user_id)
-        flash(f"{new_recipe.recipe} has been created!", "success")
-        return redirect(url_for('account'))
-    return render_template('create.html', form=form)
-
-# Edit a recipe
-@app.route('/edit/<recipe_id>', methods=["GET", "POST"])
-@login_required
-def edit_recipe(recipe_id):
-    form = RecipeForm()
-    recipe_to_edit = Recipe.query.get_or_404(recipe_id)
-    # Make sure that the post author is the current user
-    if recipe_to_edit.user != current_user:
-        flash("You do not have permission to edit this recipe", "danger")
-        return redirect(url_for('index'))
-
-    # If form submitted, update Post
-    if form.validate_on_submit():
-        # update the post with the form data
-        recipe_to_edit.first_name = form.first_name.data
-        recipe_to_edit.last_name = form.last_name.data
-        recipe_to_edit.phone = form.phone.data
-        recipe_to_edit.recipe = form.recipe.data
-        # Commit that to the database
-        db.session.commit()
-        flash(f"{recipe_to_edit.last_name, recipe_to_edit.first_name} has been edited!", "success")
-        return redirect(url_for('account'))
-
-    # Pre-populate the form with Recipe To Edit's values
-    form.first_name.data = recipe_to_edit.first_name
-    form.last_name.data = recipe_to_edit.last_name
-    form.phone.data = recipe_to_edit.phone
-    form.recipe.data = recipe_to_edit.recipe
-    return render_template('edit.html', form=form, recipe=recipe_to_edit)
-
 # Delete a recipe from the database
 @app.route('/delete/<recipe_id>')
 @login_required
@@ -196,27 +162,7 @@ def delete_recipe(recipe_id):
     return redirect(url_for('account'))
 
 
-# Favorite a recipe and add to DB
-@app.route('/recipe/<int:recipe_id>/favorite')
-@login_required
-def favorite_recipe(recipe_id):
-    recipe = Recipe.query.get(recipe_id)
-    if recipe:
-        current_user.favorite_recipes.append(recipe)
-        db.session.commit()
-        flash(f"{recipe.title} added to favorites!")
-    return redirect(url_for('index'))
 
-@app.route("/<int:recipe_id>/favorite", methods=["POST"])
-@login_required
-def toggle_favorite(recipe_id):
-    recipe = Recipe.query.get_or_404(recipe_id)
-    if current_user in recipe.favorited_by.all():
-        recipe.favorited_by.remove(current_user)
-    else:
-        recipe.favorited_by.append(current_user)
-    db.session.commit()
-    return jsonify({"success": True})
 
 
     
