@@ -4,14 +4,11 @@ from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-import requests
+import requests, random
 
 spoonacular_api_key = API_KEY
 
-
-
-
-from app import routes, models
+from app import routes
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -29,21 +26,25 @@ def search():
     
     if input_value:
         api_key = spoonacular_api_key
-        url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={input_value}&apiKey={api_key}'
+        # Use the findByIngredients endpoint and set the number of results to 100 (maximum allowed)
+        url = f'https://api.spoonacular.com/recipes/findByIngredients?ingredients={input_value}&number=20&apiKey={api_key}'
         response = requests.get(url)
         
         if response.status_code == 200:
-            results = response.json()
+            all_results = response.json()
+            # Randomly select 21 results from the available recipes
+            results = random.sample(all_results, min(21, len(all_results)))
             return render_template('results.html', input_value=input_value, results=results, form=form)
         else:
             flash('Error in API request')
     return render_template('index.html', form=form)
 
 
+
 @app.route('/results/<search_term>', methods=['GET'])
 def results(search_term):
     api_key = spoonacular_api_key
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=21&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
@@ -55,22 +56,16 @@ def results(search_term):
         return redirect(url_for('index'))
 
 
-# @app.route('/search', methods=['GET', 'POST'])
-# def search():
-#     form = forms.SearchForm()
-#     if request.method == 'POST':
-#         if form.validate_on_submit():
-#             input_value = form.search_term.data
-#             api_key = spoonacular_api_key
-#             url = f'https://api.spoonacular.com/recipes/findByIngredients?number=10&limitLicense=true&ranking=1&ignorePantry=false&ingredients={input_value}&apiKey={api_key}'
-#             response = requests.get(url)
-#             if response.status_code == 200:
-#                 results = response.json()
-#                 return render_template('results.html', input_value=input_value, results=results, form=SearchForm())
-#             else:
-#                 flash('Error in API request')
-#     return render_template('index.html', form=form)
-
+# @app.route('/toggle_favorite/<int:recipe_id>', methods=['POST'])
+# @login_required
+# def toggle_favorite(recipe_id):
+#     recipe = Recipe.query.get_or_404(recipe_id)
+#     if current_user in recipe.favorited_by:
+#         recipe.favorited_by.remove(current_user)
+#     else:
+#         recipe.favorited_by.append(current_user)
+#     db.session.commit()
+#     return redirect(request.referrer)
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -150,13 +145,10 @@ def create_recipe():
     form = RecipeForm()
     if form.validate_on_submit():
         # Get the data from the form
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-        phone = form.phone.data or None
         recipe = form.recipe.data or None
         user_id = current_user.id
         # Create an instance of Recipe with form data AND auth user ID
-        new_recipe = Recipe(first_name=first_name, last_name=last_name, phone=phone, recipe=recipe, user_id=user_id)
+        new_recipe = Recipe(recipe=recipe, user_id=user_id)
         flash(f"{new_recipe.recipe} has been created!", "success")
         return redirect(url_for('account'))
     return render_template('create.html', form=form)

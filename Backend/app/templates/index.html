@@ -24,8 +24,6 @@
 
 <head><title>Ex.DataStorage | "12 Homepage Recipe Items"</title>
    
-
-
     <div class="container" style="border-radius: 0">
         <div class="row row-cols-1 row-cols-md-3 mt-3 ">
             {% for recipe in recipes %}
@@ -35,13 +33,19 @@
                         alt="{{ recipe.title }}">
                     <div class="card-body">
                         <h6 class="card-title">{{ recipe.title }}</h6>
+                        <a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank" rel="noopener noreferrer"
+                            class="btn btn-outline-success w-60 ml-4 mt-2" style="width: 8rem;">
+                            View on Spoonacular
+                        </a>
+
                         <a href="{{ recipe.link }}" target="_blank"
                             class="btn btn-primary">View Recipe</a>
                     {% if current_user.is_authenticated %}
                     <form method="post" action="{{ url_for('search') }}">
 
                         {{ form.csrf_token }}
-                        {% if current_user in recipe.favorited_by.all() %}
+                        <!-- {% if current_user in recipe.favorited_by.all() %} -->
                         <input type="submit" value="Unfavorite" class="btn btn-danger">
                         {% else %}
                         <input type="submit" value="Favorite" class="btn btn-success">
@@ -219,7 +223,7 @@
             </div>
         </div>
 
-    </div>
+    
 </head>
 
 
@@ -317,6 +321,7 @@
 
 
     </div>
+</div>
 </div>
 
 
