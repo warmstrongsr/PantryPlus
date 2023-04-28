@@ -42,8 +42,8 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 5  # Set the desired number of results per page
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=15&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    results_per_page = 10  # Set the desired number of results per page
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=45&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
@@ -56,7 +56,7 @@ def results(search_term, page=1):
         return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
     else:
         flash('Error in API request')
-        return redirect(url_for('index'))
+        return redirect(url_for('results'))
 
 @app.route('/favorite', methods=['POST'])
 def favorite():

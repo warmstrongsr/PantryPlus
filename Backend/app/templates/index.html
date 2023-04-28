@@ -6,8 +6,8 @@
 <h1>Pantry Plus2</h1>
 {% if current_user.is_authenticated %}
 <h6>Nice to see you again, {{ current_user.username.title() }}!</h6>
-<div class="container" style="border-radius: 0;">
-    <div class="col3-col-lg-3 ">
+<div class="container" style="border-radius: 2;">
+    <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET">
             {{ form.csrf_token }}
             {{ form.search_term.label }} {{ form.search_term() }}
@@ -24,7 +24,7 @@
 {% block content %}
 {% if current_user.is_authenticated %}
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3">
         {% for recipe in recipes %}
         {% if recipe %}
         <div class="col mb-0 mt-4">
@@ -61,6 +61,5 @@
     </div>
 </div>
 {% else %}
-<h6>Please Sign Up or Log In to Create or Update Address Books</h6>
 {% endif %}
 {% endblock %}
