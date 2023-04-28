@@ -15,8 +15,14 @@ favorites = db.Table('favorites',
 
 user_recipes = db.Table('user_recipes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True)
-)
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True))
+
+latest_users = db.Table('latest_users',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True),
+    db.Column('timestamp', db.DateTime, default=datetime.utcnow, nullable=False))
+
+
  
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,6 +70,7 @@ class Recipe(db.Model):
     image = db.Column(db.String(500))  # Add this line
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    latest_users = db.relationship('User', secondary=latest_users, backref=db.backref('latest_added_recipes', lazy='dynamic'), lazy='dynamic')
 
 
 

@@ -27,7 +27,7 @@ class SignUpForm(FlaskForm):
     submit = SubmitField('Sign Up')
 
 class SearchForm(FlaskForm):
-    search_term = StringField('Search Term')
+    search_term = StringField('')
     submit = SubmitField('Search')
     
     

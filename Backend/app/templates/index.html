@@ -32,11 +32,11 @@
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
                 <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{
-                            recipe.id}}</small></h6>
+                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
                     <div class="d-flex gap-2">
-                        <a href="{{ recipe.link }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View Recipe</a>
+                        <a href="{{ recipe.sourceUrl }}" target="_blank"
+                            class="btn btn-outline-primary btn-group-sm">View
+                            Recipe</a>
                         {% if current_user.is_authenticated %}
                         <form method="post" action="{{ url_for('favorite') }}"
                             class="d-flex">
@@ -60,6 +60,30 @@
         {% endfor %}
     </div>
 </div>
-{% else %}
+{% endif %}
+
+{% if not current_user.is_authenticated %}
+<div class="container" style="border-radius: 0">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+        {% for recipe in recipes %}
+        {% if recipe %}
+        <div class="col mb-0 mt-4">
+            <div class="card h-100">
+                <img src="{{ recipe.image }}" class="card-img-top"
+                    alt="{{ recipe.title }}">
+                <div class="card-body">
+                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
+                    <div class="d-flex gap-2">
+                        <a href="{{ recipe.sourceUrl }}" target="_blank"
+                            class="btn btn-outline-primary btn-group-sm">View
+                            Recipe</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
 {% endif %}
 {% endblock %}
