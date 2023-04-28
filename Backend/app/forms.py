@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField, PasswordField
-from wtforms.validators import InputRequired, EqualTo, Length
+from wtforms.validators import InputRequired, EqualTo, Length, DataRequired
 
 
 class RecipeForm(FlaskForm):
@@ -35,3 +35,9 @@ class IngredientForm(FlaskForm):
     ingredient = StringField('Ingredient', validators=[InputRequired()])
     search_term = StringField('Search Term')
     submit= SubmitField('Ingredient')
+    
+class AddRecipeForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    link = StringField('Link', validators=[DataRequired()])
+    image = StringField('Image URL')
+    submit = SubmitField('Add Recipe')

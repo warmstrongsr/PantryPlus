@@ -13,58 +13,58 @@
 
 {% block content %}
 
+
 <div class="row d-flex justify-content-center">
-    <div class="col-12 col-lg-6 order-0 order-lg-1">
-        {% for recipe in recipes %}
-        <div class="card mt-3">
-            <div class="card-body">
+    <div class="col-12 col-lg-10 order-0 order-lg-1">
+        <table class="table table-bordered table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date Added</th>
+                    <th>Recipe ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in recipes %}
+                {% if recipe.title is not none %}
+                <tr>
+                    <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank">{{ recipe.title}}</a></td>
+                    <td>{{ recipe.date_created }}</td>
+                    <td>
+                        <a href="{{ recipe.link }}">{{ recipe.id }}</a>
+                    </td>
+                    <td>
+                        {% if recipe.user == current_user %}
+                        <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-success">Edit</a>
+                        <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-danger">Delete</a>
+                        {% endif %}
+                        {% if current_user.is_authenticated %}
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline">
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
+                            {% if current_user in recipe.favorited_by.all() %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success">
+                            {% endif %}
+                        </form>
 
-                <h5 class="card-title">{{ recipe.title }}</h5>
-
-                <p class="card-text">{{ recipe.title }}<br>
-                    {{recipe.title }}<br>
-
-                <h6 class="card-subtitle text-muted">Date Added: {{
-                    recipe.date_created}}</h6>
-
-                {% if recipe.user %}
-                {% if recipe.user == current_user %}
-                <small class="card-subtitle">By: You</small>
-                {% else %}
-                <small class="card-subtitle">By: {{
-                    recipe.user.username.title() }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endif %}
-                {% else %}
-                <small class="card-subtitle">By: Unknown</small>
-                {% endif %}
-            </div>
-            <div class="card-footer">
-                {% if recipe.user == current_user %}
-                <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
-                    class="btn btn-success">Edit</a>
-                <button type="button" class="btn btn-danger"
-                    data-bs-toggle="modal"
-                    data-bs-target="#deleterecipeModal-{{ recipe.id }}">Delete</button>
-                {% endif %}
-                {% if current_user.is_authenticated %}
-                <form method="post"
-                    action="{{ url_for('toggle_favorite', recipe_id=recipe.id) }}"
-                    class="d-inline">
-                    {{ form.csrf_token }}
-                    {% if current_user in recipe.favorited_by.all() %}
-                    <input type="submit" value="Unfavorite"
-                        class="btn btn-danger">
-                    {% else %}
-                    <input type="submit" value="Favorite"
-                        class="btn btn-success">
-                    {% endif %}
-                </form>
-                {% endif %}
-            </div>
-
-        </div>
-        {% endfor %}
-
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     <!-- Modal -->
     {% for recipe in recipes %}
@@ -94,6 +94,5 @@
     </div>
     {% endfor %}
 </div>
-
 
 {% endblock %}

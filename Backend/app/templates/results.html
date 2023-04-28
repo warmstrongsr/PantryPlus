@@ -41,33 +41,27 @@
                     alt="{{ recipe.title }}">
                 <div class="card-body">
                     <h6 class="card-title">{{ recipe.title }}</h6>
-                    <div
-                        class="d-flex justify-content-between align-items-center">
-                        <div class="btn-group">
-                            <a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                                target="_blank" rel="noopener noreferrer"
-                                class="btn btn-outline-success w-60 ml-4 mt-2"
-                                style="width: 8rem;">
-                                View Recipe
-                            </a>
-                            <!-- Add favorite button -->
-                            <form method="post"
-                                action="{{ url_for('toggle_favorite') }}"
-                                class="d-inline">
-                                {{ form.csrf_token }}
-                                <input type="hidden" name="recipe_id"
-                                    value="{{ recipe.id }}">
-                                <input type="hidden" name="recipe_title"
-                                    value="{{ recipe.title }}">
-                                <!-- Add this line -->
-                                <button type="submit"
-                                    class="btn btn-outline-warning btn-responsive">
-                                    Favorite
-                                </button>
-                            </form>
-
-                        </div>
+                <div class="d-flex align-items-center">
+                    <div class="text-center">
+                        <a href="{{ recipe.sourceUrl }}"
+                            target="_blank" rel="noopener noreferrer"
+                            class="btn btn-outline-success w-60 ml-4 mt-2" style="width: 8rem;">
+                            View Recipe
+                        </a>
                     </div>
+                    <div class="text-center">
+                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-inline">
+                        {{ form.csrf_token }}
+                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                        <input type="hidden" name="recipe_title" value="{{ recipe.title }}">
+                        <input type="hidden" name="recipe_image" value="{{ recipe.image }}">
+                        <button type="submit" class="btn btn-outline-warning btn-responsive">
+                            Favorite
+                        </button>
+                    </form>
+                    </div>
+                </div>
+
                 </div>
             </div>
         </div>

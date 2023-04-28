@@ -3,7 +3,7 @@ import base64
 from datetime import datetime, timedelta
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user
 from app import db, login
 
 login_manager = LoginManager()
@@ -33,6 +33,16 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"<User {self.id}|{self.username}>"
+    
+    def to_dict(self):
+        return {
+        "id": self.id,
+        "first_name": self.first_name,
+        "last_name": self.last_name,
+        "email": self.email,
+        "username": self.username,
+    }
+
 
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
@@ -43,9 +53,12 @@ def get_a_user_by_id(user_id):
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title=db.Column(db.String(200))
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow )
+    title = db.Column(db.String(200))
+    link = db.Column(db.String(500))
+    image = db.Column(db.String(500))  # Add this line
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 
 
     def __init__(self, **kwargs):
@@ -56,10 +69,12 @@ class Recipe(db.Model):
     def __repr__(self):
         return f"<Recipe {self.id}|{self.title}>"
 
-    def to_dict(self):
-        current_user_id = getattr(current_user, "id", None)
-        current_user = User.query.get(current_user_id)
-        is_favorite = current_user in self.favorited_by.all()
+    def to_dict(self, current_user=None):
+        if current_user is not None:
+            is_favorite = current_user in self.favorited_by.all()
+        else:
+            is_favorite = False
+
         return {
             "id": self.id,
             "title": self.title,
@@ -67,7 +82,9 @@ class Recipe(db.Model):
             "date_created": self.date_created,
             "author": User.query.get(self.user_id).to_dict(),
             "is_favorite": is_favorite,
-    }
+            "image": self.image,
+            "favorited_by": [user.id for user in self.favorited_by.all()],
+        }
 
     def update(self, data):
         for field in data:
@@ -79,6 +96,7 @@ class Recipe(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
         
 
 

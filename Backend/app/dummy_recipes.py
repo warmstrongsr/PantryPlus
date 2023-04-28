@@ -12,12 +12,6 @@ dummy_recipes = [
         "link": "https://spoonacular.com/recipes/Bacon-Ice-Cream-633314"
     },
     {
-        "id": "665734",
-        "title": "Zucchini Chicken Omelette",
-        "image": "https://spoonacular.com/recipeImages/665734-312x231.jpg",
-        "link": "https://spoonacular.com/recipes/Zucchini-Chicken-Omelette-665734"
-    },
-    {
         "id": "650755",
         "title": "Mango Black Tea Skinny Cocktail",
         "image": "https://spoonacular.com/recipeImages/650755-312x231.jpg",
@@ -40,6 +34,12 @@ dummy_recipes = [
         "title": "Red Wine Stewed Oxtail",
         "image": "https://spoonacular.com/recipeImages/658126-312x231.jpg",
         "link": "https://spoonacular.com/recipes/Red-Wine-Stewed-Oxtail-658126"
+    },
+    {
+        "id": "665734",
+        "title": "Zucchini Chicken Omelette",
+        "image": "https://spoonacular.com/recipeImages/665734-312x231.jpg",
+        "link": "https://spoonacular.com/recipes/Zucchini-Chicken-Omelette-665734"
     },
     {
         "id": "641717",

@@ -1,7 +1,8 @@
 from app import app, db, forms, models
+from app.dummy_recipes import dummy_recipes
 from flask import render_template, redirect, url_for, flash, request
 from app.apikey import API_KEY
-from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
+from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests, random
@@ -11,14 +12,22 @@ spoonacular_api_key = API_KEY
 
 from app import routes
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    form = forms.SearchForm()
-    if form.validate_on_submit():
-        input_value = form.search_term.data
-        return redirect(url_for('search', search_term=input_value))
-    recipes = models.Recipe.query.all()
-    return render_template('index.html', form=form, recipes=recipes)
+    search_form = SearchForm()
+    recipes = Recipe.query.all()
+    # Filter out recipes with missing data
+    valid_recipes = [recipe for recipe in recipes if recipe.title and recipe.link]
+
+    # Convert valid recipes to dictionaries
+    recipes_data = [recipe.to_dict(current_user) for recipe in valid_recipes]
+
+    # Combine fetched recipes and dummy data
+    all_recipes = recipes_data + dummy_recipes
+
+    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form)
+
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -33,8 +42,8 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 15  # Set the desired number of results per page
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=50&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    results_per_page = 5  # Set the desired number of results per page
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=15&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
@@ -49,15 +58,33 @@ def results(search_term, page=1):
         flash('Error in API request')
         return redirect(url_for('index'))
 
+@app.route('/favorite', methods=['POST'])
+def favorite():
+    recipe_id = request.form.get('recipe_id')
+    recipe = Recipe.query.get(recipe_id)
+
+    if recipe and current_user.is_authenticated:
+        if recipe in current_user.favorites:
+            # Unfavorite the recipe
+            current_user.favorites.remove(recipe)
+        else:
+            # Favorite the recipe
+            current_user.favorites.append(recipe)
+        db.session.commit()
+
+    return redirect(url_for('account'))
+
+
 @app.route('/toggle_favorite', methods=['POST'])
 @login_required
 def toggle_favorite():
     recipe_id = request.form.get('recipe_id')
+    recipe_title = request.form.get('recipe_title')
+    recipe_image = request.form.get('recipe_image')
     recipe = Recipe.query.get(recipe_id)
-    
+
     if not recipe:
-        # If the recipe is not in the database, create it/save
-        recipe = Recipe(id=recipe_id, title=request.form.get('recipe_title'), user_id=current_user.id)
+        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
         db.session.add(recipe)
         db.session.commit()
 
@@ -65,14 +92,27 @@ def toggle_favorite():
         # Remove the recipe from the user's favorites
         current_user.favorites.remove(recipe)
         db.session.commit()
-        flash('Recipe removed from favorites.', 'success')
+        flash(f'{recipe.title} removed from favorites.', 'danger')
     else:
         # Add the recipe to the user's favorites
         current_user.favorites.append(recipe)
         db.session.commit()
-        flash('Recipe added to favorites.', 'success')
+        flash(f'{ recipe.title} added to favorites.', 'success')
 
-    return redirect(request.referrer or url_for('index'))
+      # Always redirect to account page
+    return redirect(url_for('account'))
+
+from app.forms import AddRecipeForm
+
+@app.route('/add_recipe', methods=['GET', 'POST'])
+@login_required
+def add_recipe():
+    form = AddRecipeForm()
+    if form.validate_on_submit():
+        recipe = Recipe(title=form.title.data, link=form.link.data, image=form.image.data, user_id=current_user.id)
+        flash('Recipe added successfully!', 'success')
+        return redirect(url_for('index'))
+    return render_template('add_recipe.html', title='Add Recipe', form=form)
 
 
 
@@ -158,7 +198,7 @@ def delete_recipe(recipe_id):
 
     db.session.delete(recipe_to_delete)
     db.session.commit()
-    flash(f"{recipe_to_delete.recipe} has been deleted", "info")
+    flash(f"{recipe_to_delete.title} has been deleted", "info")
     return redirect(url_for('account'))
 
 
