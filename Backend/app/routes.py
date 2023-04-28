@@ -1,24 +1,44 @@
 from app import app, db, forms, models
+from app.dummy_recipes import dummy_recipes
 from flask import render_template, redirect, url_for, flash, request
 from app.apikey import API_KEY
-from app.forms import SignUpForm, LoginForm, RecipeForm, SearchForm
+from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
+from math import ceil
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests, random
-from math import ceil
+import json
 
 spoonacular_api_key = API_KEY
 
 from app import routes
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    form = forms.SearchForm()
-    if form.validate_on_submit():
-        input_value = form.search_term.data
-        return redirect(url_for('search', search_term=input_value))
-    recipes = models.Recipe.query.all()
-    return render_template('index.html', form=form, recipes=recipes)
+    search_form = SearchForm()
+    recipes = Recipe.query.all()
+    # Filter out recipes with missing data
+    valid_recipes = [recipe for recipe in recipes if recipe.title and recipe.link]
+    # Convert valid recipes to dictionaries
+    recipes_data = [recipe.to_dict(current_user) for recipe in valid_recipes]
+
+    # Combine fetched recipes and dummy data
+    all_recipes = recipes_data + dummy_recipes
+
+    # Fetch random recipes
+    api_key = spoonacular_api_key
+    url = f"https://api.spoonacular.com/recipes/random?number=40&apiKey={api_key}"
+    response = requests.get(url)
+    data = json.loads(response.text)
+    random_recipes = data['recipes']
+    # Combine random recipes with existing recipes
+    all_recipes = recipes_data + random_recipes
+        
+    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form)
+
+
+
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -34,7 +54,7 @@ def search():
 def results(search_term, page=1):
     api_key = spoonacular_api_key
     results_per_page = 15  # Set the desired number of results per page
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=50&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=45&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
@@ -47,32 +67,81 @@ def results(search_term, page=1):
         return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
     else:
         flash('Error in API request')
-        return redirect(url_for('index'))
+        return redirect(url_for('results'))
+
+@app.route('/favorite', methods=['POST'])
+def favorite():
+    recipe_id = request.form.get('recipe_id')
+    recipe = Recipe.query.get(recipe_id)
+
+    if recipe and current_user.is_authenticated:
+        if recipe in current_user.favorites:
+            # Unfavorite the recipe
+            current_user.favorites.remove(recipe)
+        else:
+            # Favorite the recipe
+            current_user.favorites.append(recipe)
+        db.session.commit()
+
+    referrer = request.referrer
+    if 'results' in referrer:
+        return redirect(referrer)
+    else:
+        return redirect(url_for('account'))
+
 
 @app.route('/toggle_favorite', methods=['POST'])
 @login_required
 def toggle_favorite():
     recipe_id = request.form.get('recipe_id')
+    recipe_title = request.form.get('recipe_title')
+    recipe_image = request.form.get('recipe_image')
     recipe = Recipe.query.get(recipe_id)
-    
+
     if not recipe:
-        # If the recipe is not in the database, create it/save
-        recipe = Recipe(id=recipe_id, title=request.form.get('recipe_title'), user_id=current_user.id)
+        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
         db.session.add(recipe)
         db.session.commit()
 
     if current_user in recipe.favorited_by.all():
         # Remove the recipe from the user's favorites
         current_user.favorites.remove(recipe)
+        if current_user in recipe.latest_users.all():  # Check if the relationship exists
+            recipe.latest_users.remove(current_user)
         db.session.commit()
-        flash('Recipe removed from favorites.', 'success')
+        flash(f'{recipe.title} removed from favorites.', 'danger')
     else:
         # Add the recipe to the user's favorites
         current_user.favorites.append(recipe)
+        recipe.latest_users.append(current_user)
+        if len(recipe.latest_users.all()) > 3:
+            oldest_user = min(recipe.latest_users, key=lambda user: user.latest_added_recipes.filter_by(id=recipe.id).first().timestamp)
+            recipe.latest_users.remove(oldest_user)
         db.session.commit()
-        flash('Recipe added to favorites.', 'success')
+        flash(f'{ recipe.title} added to favorites.', 'success')
 
-    return redirect(request.referrer or url_for('index'))
+    # Always redirect to account page
+    return redirect(url_for('account'))
+
+@app.route('/random_recipes')
+def random_recipes():
+    api_key = "YOUR_SPOONACULAR_API_KEY"
+    url = f"https://api.spoonacular.com/recipes/random?number=20&apiKey={api_key}"
+    response = requests.get(url)
+    data = json.loads(response.text)
+    recipes = data['recipes']
+    return render_template('index.html', recipes=recipes)
+
+
+@app.route('/add_recipe', methods=['GET', 'POST'])
+@login_required
+def add_recipe():
+    form = AddRecipeForm()
+    if form.validate_on_submit():
+        recipe = Recipe(title=form.title.data, link=form.link.data, image=form.image.data, user_id=current_user.id)
+        flash('Recipe added successfully!', 'success')
+        return redirect(url_for('index'))
+    return render_template('add_recipe.html', title='Add Recipe', form=form)
 
 
 
@@ -158,7 +227,7 @@ def delete_recipe(recipe_id):
 
     db.session.delete(recipe_to_delete)
     db.session.commit()
-    flash(f"{recipe_to_delete.recipe} has been deleted", "info")
+    flash(f"{recipe_to_delete.title} has been deleted", "info")
     return redirect(url_for('account'))
 
 

@@ -11,17 +11,25 @@
             <div class="navbar-nav">
                 <a class="nav-link" href="/">Home</a>
                 {% if current_user.is_authenticated %}
-                <a class="nav-link" href="/account">Your Recipe Menu</a>
-                <a class="nav-link" href="/search">Fun</a>
-                <a class="nav-link" href="{{ url_for('search') }}">Search</a>
+                <a class="nav-link" href="/account">Your Menu</a>
                 <a class="nav-link" href="/logout">Log Out</a>
-                
                 {% else %}
                 <a class="nav-link" href="/signup">Sign Up</a>
                 <a class="nav-link" href="/login">Log In</a>
                 {% endif %}
-
             </div>
+            {% if current_user.is_authenticated %}
+            <div class="navbar-nav ms-auto">
+                <form action="" method="POST" class="d-flex">
+                    {{ form.csrf_token }}
+                    {{ form.search_term.label }} {{ form.search_term(class="form-control
+                    search-input") }}
+                    {{ form.submit(class="btn btn-outline-light") }}
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
         </div>
         
     </div>
