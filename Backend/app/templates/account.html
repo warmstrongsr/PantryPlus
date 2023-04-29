@@ -16,10 +16,10 @@
 
 <div class="row d-flex justify-content-center">
     <div class="col-10 col-lg-10 order-0 order-lg-1">
-        <table class="table text-white table-bordered table-striped mt-3">
+        <table class="table  table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
-                <tr>
-                    <th>Title</th>
+                <tr class= "text-center">
+                    <th class="text-left">Title</th>
                     <th>Recipe ID</th>
                     <th>Date Added</th>
                     <th>Latest Users</th>
@@ -58,13 +58,17 @@
                             {% if current_user in recipe.favorited_by.all() %}
                             <input type="submit" value="Unfavorite"
                                 class="btn btn-outline-danger">
-                            {% else %}
-                            <input type="submit" value="Favorite"
+                                {% else %}
+                                <input type="submit" value="Favorite"
                                 class="btn btn-outline-success">
+                            {% endif %}
+                            <input type="submit" value="Delete"
+                                class="btn btn-outline-danger">
                             {% endif %}
                         </form>
 
-                        {% endif %}
+                        
+                        
                     </td>
                 </tr>
                 {% endif %}

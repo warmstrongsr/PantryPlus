@@ -2,6 +2,7 @@
 
 {% block title %} Home {% endblock %}
 
+
 {% block header %}
 <h1>Pantry Plus2</h1>
 {% if current_user.is_authenticated %}
@@ -17,14 +18,15 @@
 </div>
 
 {% else %}
-<h6>Please Sign Up or Log In to Create or Update Address Books</h6>
+<h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 {% if current_user.is_authenticated %}
+{% if recipes %}
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
         {% for recipe in recipes %}
         {% if recipe %}
         <div class="col mb-0 mt-4">
@@ -32,7 +34,8 @@
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
                 <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
+                    <h6 class="card-title">{{ recipe.title }} <small> ID:
+                            {{recipe.id}}</small></h6>
                     <div class="d-flex gap-2">
                         <a href="{{ recipe.sourceUrl }}" target="_blank"
                             class="btn btn-outline-primary btn-group-sm">View
@@ -62,28 +65,36 @@
 </div>
 {% endif %}
 
-{% if not current_user.is_authenticated %}
+{% if total_pages > 1 %}
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
-        {% for recipe in recipes %}
-        {% if recipe %}
-        <div class="col mb-0 mt-4">
-            <div class="card h-100">
-                <img src="{{ recipe.image }}" class="card-img-top"
-                    alt="{{ recipe.title }}">
-                <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
-                    <div class="d-flex gap-2">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View
-                            Recipe</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        {% endfor %}
+    <div class="row row-cols-1  mt-3 " style="border-radius: 0">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li
+                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page-1) }}" {% if
+                        current_page==1 %}aria-disabled="true" {% endif
+                        %}>Previous</a>
+                </li>
+                {% for i in range(1, total_pages+1) %}
+                <li
+                    class="page-item {% if current_page == i %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=i) }}">{{
+                        i }}</a>
+                </li>
+                {% endfor %}
+                <li
+                    class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page+1) }}" {% if
+                        current_page==total_pages %}aria-disabled="true"{% endif %}>Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}

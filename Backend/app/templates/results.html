@@ -12,9 +12,7 @@
             {{ form.submit }}
         </form>
     </div>
-    <div class="container my-3 px-5">
-    <h3>Search Results for "{{ input_value }}"</h3>
-    </div>
+   
 </div>
 
 <style>
@@ -33,20 +31,20 @@
 </style>
 
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-md-5 ">
+    <div class="row row-cols-1 row-cols-md-4 ">
         {% for recipe in results %}
         <div class="col-mb-4 mt-3">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
-                <div class="card-body">
+                <div class="card-body class="text-center">
                     <h6 class="card-title">{{ recipe.title }}</h6>
                 <div class="d-flex align-items-center">
                     <div class="text-center">
                         <a href="{{ recipe.sourceUrl }}"
                             target="_blank" rel="noopener noreferrer"
                             class="btn btn-outline-success w-60 ml-4 mt-2" style="width: 5rem;">
-                            View Recipe
+                            Recipe
                         </a>
                     </div>
                     <div class="text-center">
@@ -55,7 +53,7 @@
                         <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
                         <input type="hidden" name="recipe_title" value="{{ recipe.title }}">
                         <input type="hidden" name="recipe_image" value="{{ recipe.image }}">
-                        <button type="submit" class="btn btn-outline-warning btn-responsive">
+                        <button type="submit" class="btn btn-outline-warning w-60 ml-4 mt-2 btn-responsive">
                             Favorite
                         </button>
                     </form>

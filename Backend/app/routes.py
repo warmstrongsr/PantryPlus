@@ -18,13 +18,15 @@ from app import routes
 def index():
     search_form = SearchForm()
     recipes = Recipe.query.all()
+      # Get the current page from the query string
+    page = request.args.get('page', 1, type=int)
+
     # Filter out recipes with missing data
     valid_recipes = [recipe for recipe in recipes if recipe.title and recipe.link]
     # Convert valid recipes to dictionaries
     recipes_data = [recipe.to_dict(current_user) for recipe in valid_recipes]
-
-    # Combine fetched recipes and dummy data
-    all_recipes = recipes_data + dummy_recipes
+    # # Combine fetched recipes and dummy data
+    # all_recipes = recipes_data + dummy_recipes
 
     # Fetch random recipes
     api_key = spoonacular_api_key
@@ -32,10 +34,16 @@ def index():
     response = requests.get(url)
     data = json.loads(response.text)
     random_recipes = data['recipes']
-    # Combine random recipes with existing recipes
+     # Define the number of recipes per page
+    per_page = 8
+    # Calculate the total number of pages
     all_recipes = recipes_data + random_recipes
+     # Get the recipes for the current page
+    total_pages = ceil(len(all_recipes) / per_page)
+    # Combine random recipes with existing recipes
+    recipes = all_recipes[(page - 1) * per_page:page * per_page]
         
-    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form)
+    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form,  total_pages=total_pages, current_page=page)
 
 
 
@@ -64,10 +72,11 @@ def results(search_term, page=1):
         results_data = all_results_data[offset:offset+results_per_page]
         total_results = len(all_results_data)  # Get the total number of results
         total_pages = ceil(total_results / results_per_page)
-        return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
     else:
         flash('Error in API request')
         return redirect(url_for('results'))
+    
+    return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
 
 @app.route('/favorite', methods=['POST'])
 def favorite():

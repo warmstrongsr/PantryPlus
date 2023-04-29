@@ -55,7 +55,6 @@ class User(db.Model, UserMixin):
         "username": self.username,
     }
 
-
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
 
@@ -87,6 +86,8 @@ class Recipe(db.Model):
             is_favorite = current_user in self.favorited_by.all()
         else:
             is_favorite = False
+        # Include the username of each user who favorited the recipe
+        favorited_by_usernames = [user.username for user in self.favorited_by.all()]
 
         return {
             "id": self.id,
@@ -96,7 +97,7 @@ class Recipe(db.Model):
             "author": User.query.get(self.user_id).to_dict(),
             "is_favorite": is_favorite,
             "image": self.image,
-            "favorited_by": [user.id for user in self.favorited_by.all()],
+            "favorited_by_usernames": favorited_by_usernames,
         }
 
     def update(self, data):
