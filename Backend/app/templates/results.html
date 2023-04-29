@@ -75,7 +75,7 @@
                 <li
                     class="page-item {% if current_page == 1 %}disabled{% endif %}">
                     <a class="page-link"
-                        href="{{ url_for('results', search_term=input_value, page=current_page-1) }}"
+                        href="{{ url_for('results', search_term=search_term, page=current_page-1) }}"
                         {% if current_page==1 %}aria-disabled="true" {% endif
                         %}>Previous</a>
                 </li>
@@ -83,14 +83,14 @@
                 <li
                     class="page-item {% if current_page == i %}active{% endif %}">
                     <a class="page-link"
-                        href="{{ url_for('results', search_term=input_value, page=i) }}">{{
+                        href="{{ url_for('results', search_term=search_term, page=i) }}">{{
                         i }}</a>
                 </li>
                 {% endfor %}
                 <li
                     class="page-item {% if current_page == total_pages %}disabled{% endif %}">
                     <a class="page-link"
-                        href="{{ url_for('results', search_term=input_value, page=current_page+1) }}"
+                        href="{{ url_for('results', search_term=search_term, page=current_page+1) }}"
                         {% if current_page==total_pages %}aria-disabled="true"
                         {% endif %}>Next</a>
                 </li>

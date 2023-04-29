@@ -4,7 +4,7 @@ from flask import render_template, redirect, url_for, flash, request
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
-from math import ceil
+import math
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests, random
 import json
@@ -18,15 +18,13 @@ from app import routes
 def index():
     search_form = SearchForm()
     recipes = Recipe.query.all()
-      # Get the current page from the query string
-    page = request.args.get('page', 1, type=int)
-
     # Filter out recipes with missing data
     valid_recipes = [recipe for recipe in recipes if recipe.title and recipe.link]
     # Convert valid recipes to dictionaries
     recipes_data = [recipe.to_dict(current_user) for recipe in valid_recipes]
-    # # Combine fetched recipes and dummy data
-    # all_recipes = recipes_data + dummy_recipes
+
+    # Combine fetched recipes and dummy data
+    all_recipes = recipes_data + dummy_recipes
 
     # Fetch random recipes
     api_key = spoonacular_api_key
@@ -34,16 +32,17 @@ def index():
     response = requests.get(url)
     data = json.loads(response.text)
     random_recipes = data['recipes']
-     # Define the number of recipes per page
-    per_page = 8
-    # Calculate the total number of pages
-    all_recipes = recipes_data + random_recipes
-     # Get the recipes for the current page
-    total_pages = ceil(len(all_recipes) / per_page)
     # Combine random recipes with existing recipes
-    recipes = all_recipes[(page - 1) * per_page:page * per_page]
-        
-    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form,  total_pages=total_pages, current_page=page)
+    all_recipes = recipes_data + random_recipes
+
+    # Define total pages based on number of recipes and recipes per page
+    recipes_per_page = 10
+    total_pages = int(math.ceil(len(all_recipes) / recipes_per_page))
+
+    # Get current page from query parameter or default to 1
+    current_page = int(request.args.get('page', 1))
+
+    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
 
 
 
@@ -55,7 +54,8 @@ def search():
     
     if input_value:
         return redirect(url_for('results', search_term=input_value, page=1))
-    return render_template('index.html', form=form)
+    return render_template('index.html', form=form, title='Home')  # Pass the form and title to the template
+
 
 
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
@@ -71,12 +71,12 @@ def results(search_term, page=1):
         offset = (page - 1) * results_per_page  # Calculate the offset based on the current page
         results_data = all_results_data[offset:offset+results_per_page]
         total_results = len(all_results_data)  # Get the total number of results
-        total_pages = ceil(total_results / results_per_page)
+        total_pages = math.ceil(total_results / results_per_page)
+        return render_template('results.html', form=form, results=results_data, total_pages=total_pages, current_page=page, search_term=search_term)  # Return the results.html template
     else:
         flash('Error in API request')
-        return redirect(url_for('results'))
-    
-    return render_template('results.html', input_value=search_term, results=results_data, form=form, current_page=page, total_pages=total_pages)
+        return redirect(url_for('index'))
+
 
 @app.route('/favorite', methods=['POST'])
 def favorite():
@@ -129,8 +129,8 @@ def toggle_favorite():
         db.session.commit()
         flash(f'{ recipe.title} added to favorites.', 'success')
 
-    # Always redirect to account page
-    return redirect(url_for('account'))
+    referrer = request.referrer  # Get the referrer URL
+    return redirect(referrer)  # Redirect the user back to the referrer page
 
 @app.route('/random_recipes')
 def random_recipes():

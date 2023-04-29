@@ -2,6 +2,7 @@
 
 {% block title %} Home {% endblock %}
 
+
 {% block header %}
 <h1>Pantry Plus2</h1>
 {% if current_user.is_authenticated %}
@@ -29,15 +30,11 @@
         {% if recipe %}
         <div class="col mb-0 mt-4">
             <div class="card h-100">
-                <img src="{{ recipe.image }}" class="card-img-top"
-                    alt="{{ recipe.title }}">
+                <!-- ... -->
                 <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID:
-                            {{recipe.id}}</small></h6>
+                    <!-- ... -->
                     <div class="d-flex gap-2">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View
-                            Recipe</a>
+                        <!-- ... -->
                         {% if current_user.is_authenticated %}
                         <form method="post" action="{{ url_for('favorite') }}"
                             class="d-flex">
@@ -86,13 +83,13 @@
                     class="page-item {% if current_page == total_pages %}disabled{% endif %}">
                     <a class="page-link"
                         href="{{ url_for('index', page=current_page+1) }}" {% if
-                        current_page==total_pages %}aria-disabled="true"{% endif %}>Next</a>
+                        current_page==total_pages %}aria-disabled="true" {%
+                        endif %}>Next</a>
                 </li>
             </ul>
         </nav>
     </div>
 </div>
-{% endif %}
 {% endif %}
 
 {% endblock %}
