@@ -38,21 +38,21 @@
                         <a href="{{ recipe.sourceUrl }}" target="_blank"
                             class="btn btn-outline-primary btn-group-sm">View
                             Recipe</a>
-                        {% if current_user.is_authenticated %}
-                        <form method="post" action="{{ url_for('favorite') }}"
-                            class="d-flex">
-                            {{ form.csrf_token }}
-                            <input type="hidden" name="recipe_id"
-                                value="{{ recipe.id }}">
-                            {% if recipe.is_favorite %}
-                            <input type="submit" value="Unfavorite"
-                                class="btn btn-outline-danger btn-group-sm">
-                            {% else %}
-                            <input type="submit" value="Favorite"
-                                class="btn btn-outline-success btn-group-sm">
-                            {% endif %}
-                        </form>
+                    {% if current_user.is_authenticated %}
+                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-flex">
+                        {{ form.csrf_token }}
+                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                        <input type="hidden" name="recipe_title" value="{{ recipe.title }}">
+                        <input type="hidden" name="recipe_image" value="{{ recipe.image }}">
+                        {% if recipe.is_favorite %}
+                        <input type="submit" value="Unfavorite"
+                            class="btn btn-outline-danger btn-group-sm">
+                        {% else %}
+                        <input type="submit" value="Favorite"
+                            class="btn btn-outline-success btn-group-sm">
                         {% endif %}
+                    </form>
+                    {% endif %}
                     </div>
                 </div>
             </div>
