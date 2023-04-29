@@ -1,6 +1,7 @@
 from app import app, db, forms, models
 from app.dummy_recipes import dummy_recipes
-from flask import render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, url_for, flash, redirect, request, abort, jsonify, session
+
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db
@@ -13,27 +14,35 @@ spoonacular_api_key = API_KEY
 
 from app import routes
 
+import json
+import requests
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    search_form = SearchForm()
-    recipes = Recipe.query.all()
-    # Filter out recipes with missing data
-    valid_recipes = [recipe for recipe in recipes if recipe.title and recipe.link]
-    # Convert valid recipes to dictionaries
-    recipes_data = [recipe.to_dict(current_user) for recipe in valid_recipes]
-
-    # Combine fetched recipes and dummy data
-    all_recipes = recipes_data + dummy_recipes
-
-    # Fetch random recipes
+def get_random_recipes():
     api_key = spoonacular_api_key
-    url = f"https://api.spoonacular.com/recipes/random?number=40&apiKey={api_key}"
+    url = f"https://api.spoonacular.com/recipes/random?number=10&apiKey={api_key}"
     response = requests.get(url)
     data = json.loads(response.text)
     random_recipes = data['recipes']
-    # Combine random recipes with existing recipes
-    all_recipes = recipes_data + random_recipes
+    return random_recipes
+
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
+@login_required
+def index():
+    page = request.args.get('page', 1, type=int)
+    
+    # Check the request method and handle the logic accordingly
+    if request.method == 'POST':
+        recipes = session.get('random_recipes', [])
+    else:
+        recipes = get_random_recipes()
+        session['random_recipes'] = recipes
+
+    # Filter out recipes with missing data
+    valid_recipes = [recipe for recipe in recipes if recipe.get('title') and recipe.get('sourceUrl')]
+
+    # Combine fetched recipes and dummy data
+    all_recipes = valid_recipes + dummy_recipes
 
     # Define total pages based on number of recipes and recipes per page
     recipes_per_page = 10
@@ -41,9 +50,9 @@ def index():
 
     # Get current page from query parameter or default to 1
     current_page = int(request.args.get('page', 1))
+    search_form = forms.SearchForm()  # Create an instance of the search form
 
     return render_template('index.html', title='Home', recipes=all_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
-
 
 
 
@@ -129,8 +138,14 @@ def toggle_favorite():
         db.session.commit()
         flash(f'{ recipe.title} added to favorites.', 'success')
 
-    referrer = request.referrer  # Get the referrer URL
-    return redirect(referrer)  # Redirect the user back to the referrer page
+    referrer = request.referrer  # Correct the indentation here
+    if 'results' in referrer:
+        return redirect(referrer)
+    else:
+        return redirect(url_for('index', _method='POST', _external=True))
+
+
+
 
 @app.route('/random_recipes')
 def random_recipes():
