@@ -11,22 +11,27 @@
             <div class="navbar-nav">
                 <a class="nav-link" href="/">New Recipes</a>
                 {% if current_user.is_authenticated %}
+                <a class="nav-link" href="/fullmenu">All Recipes</a>
                 <a class="nav-link" href="/account">Your Menu</a>
                 <a class="nav-link" href="/logout">Log Out</a>
                 {% else %}
+                <a class="nav-link" href="/fullmenu">All Recipes</a>
                 <a class="nav-link" href="/signup">Sign Up</a>
                 <a class="nav-link" href="/login">Log In</a>
                 {% endif %}
             </div>
+            {% if request.path == '/account' or request.path == '/fullmenu' %}
             {% if current_user.is_authenticated %}
             <div class="navbar-nav ms-auto">
                 <form action="" method="POST" class="d-flex">
                     {{ form.csrf_token }}
+                    {{ form.hidden_tag() }}
                     {{ form.search_term.label }} {{ form.search_term(class="form-control
                     search-input") }}
                     {{ form.submit(class="btn btn-outline-light") }}
                 </form>
             </div>
+            {% endif %}
             {% endif %}
         </div>
 

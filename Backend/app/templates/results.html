@@ -48,7 +48,9 @@
                         </a>
                     </div>
                     <div class="text-center">
-                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-inline">
+                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-inline"
+                        id="favorite-form">
+
                         {{ form.csrf_token }}
                         <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
                         <input type="hidden" name="recipe_title" value="{{ recipe.title }}">

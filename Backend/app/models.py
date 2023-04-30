@@ -21,9 +21,23 @@ latest_users = db.Table('latest_users',
     db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True),
     db.Column('timestamp', db.DateTime, default=datetime.utcnow, nullable=False))
 
+@login.user_loader
+def get_a_user_by_id(user_id):
+    return db.session.get(User, user_id)
 
-
- 
+# Define a function to generate the SQL ORDER BY clause based on the sort_by and order query parameters
+def order_func(sort_by, order):
+    """
+    Generate the SQL ORDER BY clause based on the sort_by and order query parameters
+    """
+    if sort_by == 'title':
+        return f"{sort_by} {order}"
+    elif sort_by == 'date_created':
+        return f"{sort_by} {order}"
+    elif sort_by == 'favorite_count':
+        return f"(SELECT COUNT(*) FROM favorites WHERE recipe.id = favorites.recipe_id) {order}"
+    else:
+        return 'date_created DESC'
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50), nullable=False)
@@ -95,9 +109,11 @@ class Recipe(db.Model):
     api_recipe = db.Column(db.Boolean, default=False)
 
 
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # remove seconds from the datetime
+        self.date_created = datetime.utcnow().replace(microsecond=0)  
+
         db.session.add(self)
         db.session.commit()
 
@@ -111,12 +127,14 @@ class Recipe(db.Model):
             is_favorite = False
         # Include the username of each user who favorited the recipe
         favorited_by_usernames = [user.username for user in self.favorited_by.all()]
+        
+        formatted_date = self.date_created.strftime('%B %d, %Y %I:%M %p')
 
         return {
             "id": self.id,
             "title": self.title,
             "link": self.link,
-            "date_created": self.date_created,
+            "date_created": formatted_date,
             "author": User.query.get(self.user_id).to_dict(),
             "is_favorite": is_favorite,
             "image": self.image,
@@ -136,3 +154,4 @@ class Recipe(db.Model):
         
     def favorite_count(self):
         return self.favorited_by.count()
+

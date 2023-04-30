@@ -62,6 +62,36 @@ def index():
 
     return render_template('index.html', title='Home', recipes=displayed_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
 
+@app.route('/fullmenu', methods=['GET', 'POST'])
+@login_required
+def fullmenu():
+    form = SearchForm()
+    sort_by = request.args.get('sort_by', 'title')
+    order = request.args.get('order', 'asc')
+    
+    # Query all recipes from the database
+    recipes = Recipe.query
+    
+    # Apply the search filter if a search query is submitted
+    if form.validate_on_submit():
+        search_term = form.search_term.data
+        recipes = recipes.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%")))
+
+    # Sort the recipes
+    if sort_by == 'title':
+        recipes = recipes.order_by(Recipe.title.asc() if order == 'asc' else Recipe.title.desc())
+    elif sort_by == 'recipe_id':
+        recipes = recipes.order_by(Recipe.id.asc() if order == 'asc' else Recipe.id.desc())
+    else:
+        recipes = recipes.order_by(Recipe.date_created.asc() if order == 'asc' else Recipe.date_created.desc())
+
+    # Get the final list of recipes from the query
+    recipes = recipes.all()
+
+    return render_template('full_menu.html', recipes=recipes, form=form, sort_by=sort_by, order=order)
+
+
+
 
 
 @app.route('/search', methods=['GET'])
@@ -142,14 +172,7 @@ def favorite():
     else:
         return redirect(url_for('account'))
     
-@app.route('/random_recipes')
-def random_recipes():
-    api_key = "YOUR_SPOONACULAR_API_KEY"
-    url = f"https://api.spoonacular.com/recipes/random?number=20&apiKey={api_key}"
-    response = requests.get(url)
-    data = json.loads(response.text)
-    recipes = data['recipes']
-    return render_template('index.html', recipes=recipes)
+
 
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
@@ -168,7 +191,7 @@ def add_recipe():
 @login_required
 def account():
     form = SearchForm()
-    recipes = Recipe.query.filter_by(user_id=current_user.id).order_by(Recipe.title.asc()).all()
+    recipes = current_user.favorites.order_by(Recipe.date_created.asc()).all()
     username = current_user.username
 
     if form.validate_on_submit():
@@ -176,7 +199,6 @@ def account():
         recipes = Recipe.query.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%")), Recipe.user_id==current_user.id).order_by(Recipe.user_id.asc()).all()
 
     return render_template('account.html', recipes=recipes, form=form, username=username)
-
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -201,9 +223,12 @@ def signup():
             return redirect(url_for('signup'))
         # If check_user is empty, create a new record in the user table
         new_user = User(first_name=first_name, last_name=last_name, email=email, username=username, password=password)
+        db.session.add(new_user)  # Add the new user to the session
+        db.session.commit()  # Commit the changes to the database
         flash(f"Thank you {new_user.username} for signing up!", "success")
         return redirect(url_for('login'))
     return render_template('signup.html', form=form)
+
 
 
 @app.route('/login', methods=["GET", "POST"])

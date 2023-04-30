@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %} Your Recipe Menu {% endblock %}
+{% block title %} Full Menu {% endblock %}
 
 {% block header %}
 {% if current_user.is_authenticated %}
-<h1>{{ current_user.username.title() }}'s Menu</h1>
+<h1>Full Menu <h4>Total recipes: {{ recipes|length }}</h4></h1>
 {% if recipes %}
-<h4>Total recipes: {{ recipes|length }}</h4>
 {% endif %}
 {% else %}
 <h5>Please Sign Up or Log In to Create or Update Menus</h5>
@@ -21,19 +20,22 @@
 </div>
 
 <div class="row d-flex justify-content-center">
-    <div class="col-10 col-lg-10 order-0 order-lg-1">
+    <div class="col-10 col-lg-12 ">
         <table
-            class="table  table-bordered table-striped bg-secondary-subtle mt-2">
+            class="table table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
                 <tr class="text-center">
-
-                    <th>#</th> <!-- Add the counter column -->
-                    <!-- <th class="text-left">Title</th> -->
-                    <th class="sortable" data-column="title" data-order="asc">
+                    <th>#</th>
+                    <th class="sortable" data-column="title"
+                        data-order="{{ 'asc' if sort_by == 'title' and order == 'desc' else 'desc' if sort_by == 'title' and order == 'asc' else 'asc' }}">
                         Title</th>
-                    <th>Recipe ID</th>
-                    <th>Date Added</th>
-                    <th>Latest Users</th>
+                    <th class="sortable" data-column="recipe_id"
+                        data-order="{{ 'asc' if sort_by == 'recipe_id' and order == 'desc' else 'desc' if sort_by == 'recipe_id' and order == 'asc' else 'asc' }}">
+                        Recipe ID</th>
+                    <th class="sortable" data-column="date_created"
+                        data-order="{{ 'asc' if sort_by == 'date_created' and order == 'desc' else 'desc' if sort_by == 'date_created' and order == 'asc' else 'asc' }}">
+                        Date Added</th>
+                    <th>Quick Look</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -49,15 +51,7 @@
                             href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
                             recipe.id }}</a>
                     </td>
-                    <!-- <td><a href="#"
-                            onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
-                            recipe.title}}</a></td>
-                    <td>
-                        <a href="#"
-                            onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
-                            recipe.id }}</a>
-                    </td> -->
-                    <td>{{ recipe.date_created }}</td>
+                    <td>{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
                         {% for user in recipe.latest_users %}
                         {{ user }}{% if not loop.last %}, {% endif %}
@@ -87,11 +81,11 @@
                                 class="btn btn-outline-success"
                                 onclick="updateTable({{ loop.index }});">
                             {% endif %}
-                            <input type="submit" value="Delete"
+                            <!-- <input type="submit" value="Delete"
                                 class="btn btn-outline-danger"
                                 onclick="updateTable({{ loop.index }});">
 
-                            {% endif %}
+                            {% endif %} -->
                         </form>
                     </td>
                 </tr>
@@ -109,15 +103,15 @@
     function displayRecipe(recipeId, recipeTitle, recipeUrl) {
         let selectedRecipe = document.getElementById("selected-recipe");
         selectedRecipe.innerHTML = `
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h3>${recipeTitle}</h3>
-                    </div>
-                    <div class="card-body">
-                        <a href="${recipeUrl}" target="_blank" class="btn btn-primary">View Recipe</a>
-                    </div>
-                </div>
-            `;
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>${recipeTitle}</h3>
+            </div>
+            <div class="card-body">
+                <a href="${recipeUrl}" target="_blank" class="btn btn-primary">View Recipe</a>
+            </div>
+        </div>
+    `;
     }
 </script>
 

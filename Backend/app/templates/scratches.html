@@ -93,3 +93,272 @@
 {% endif %}
 
 {% endblock %}
+
+
+
+
+**********************************************************
+account.html 4/29 1934
+{% extends 'base.html' %}
+
+{% block title %} Your Recipe Menu {% endblock %}
+
+{% block header %}
+<!-- <h1>Phonebook</h1> -->
+{% if current_user.is_authenticated %}
+<h1>{{ current_user.username.title() }}'s Menu</h1>
+{% else %}
+<h5>Please Sign Up or Log In to Create or Update Menus</h5>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+
+<div class="row d-flex justify-content-center">
+    <div class="col-10 col-lg-10 order-0 order-lg-1">
+        <table
+            class="table  table-bordered table-striped bg-secondary-subtle mt-2">
+            <thead>
+                <tr class="text-center">
+                    <th class="text-left">Title</th>
+                    <th>Recipe ID</th>
+                    <th>Date Added</th>
+                    <th>Latest Users</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in recipes %}
+                {% if recipe.title is not none %}
+                <tr>
+                    <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank">{{ recipe.title}}</a></td>
+                    <td>
+                        <a
+                            href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
+                            recipe.id }}</a>
+                    </td>
+                    <td>{{ recipe.date_created }}</td>
+                    <td>
+                        {% for user in recipe.latest_users %}
+                        {{ user }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if recipe.user == current_user %}
+                        <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-success">Edit</a>
+                        <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-danger">Delete</a>
+                        {% endif %}
+                        {% if current_user.is_authenticated %}
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline">
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
+                            {% if current_user in recipe.favorited_by.all() %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success">
+                            {% endif %}
+                            <input type="submit" value="Delete"
+                                class="btn btn-outline-danger">
+                            {% endif %}
+                        </form>
+
+
+
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Modal -->
+    {% for recipe in recipes %}
+    <div class="modal fade" id="deleterecipeModal-{{ recipe.id }}" tabindex="-1"
+        aria-labelledby="exampleModalLabel" aria-hidden="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Delete
+                        {{ recipe.title }}?</h1>
+                    <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete {{ recipe.title }}? This
+                    action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Close</button>
+                    <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                        class="btn btn-danger">Delete
+                        Recipe</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+FULL <MENU>
+    {% extends 'base.html' %}
+    
+    {% block title %} Full Menu {% endblock %}
+    
+    {% block header %}
+    {% if current_user.is_authenticated %}
+    <h1>Full Menu</h1>
+    {% if recipes %}
+    <h3>Total recipes: {{ recipes|length }}</h3>
+    {% endif %}
+    {% else %}
+    <h5>Please Sign Up or Log In to Create or Update Menus</h5>
+    {% endif %}
+    {% endblock %}
+    
+    {% block content %}
+    
+    
+    <!-- Add this div to display the selected recipe -->
+    <div id="selected-recipe">
+    </div>
+    
+    <div class="row d-flex justify-content-center">
+        <div class="col-10 col-lg-10 order-0 order-lg-1">
+            <table
+                class="table  table-bordered table-striped bg-secondary-subtle mt-2">
+                <thead>
+                    <tr class="text-center">
+    
+                        <th>#</th> <!-- Add the counter column -->
+                        <!-- <th class="text-left">Title</th> -->
+                        <th class="sortable" data-column="title" data-order="asc">
+                            Title</th>
+                        <th>Recipe ID</th>
+                        <th>Date Added</th>
+                        <th>Quick Look</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recipe in recipes %}
+                    {% if recipe.title is not none %}
+                    <tr>
+                        <td>{{ loop.index }}</td> <!-- Add the counter value -->
+                        <td><a href="#"
+                                onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
+                                recipe.title}}</a></td>
+                        <td>
+                            <a href="#"
+                                onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
+                                recipe.id }}</a>
+                        </td>
+                        <td>{{ recipe.date_created }}</td>
+                        <td>
+                            {% for user in recipe.latest_users %}
+                            {{ user }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if recipe.user == current_user %}
+                            <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
+                                class="btn btn-success">Edit</a>
+                            <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                                class="btn btn-danger">Delete</a>
+                            {% endif %}
+                            {% if current_user.is_authenticated %}
+                            <form method="post"
+                                action="{{ url_for('toggle_favorite') }}"
+                                class="d-inline" id="favorite-form">
+    
+                                {{ form.csrf_token }}
+                                <input type="hidden" name="recipe_id"
+                                    value="{{ recipe.id }}">
+                                {% if current_user in recipe.favorited_by.all() %}
+                                <input type="submit" value="Unfavorite"
+                                    class="btn btn-outline-danger"
+                                    onclick="updateTable({{ loop.index }});">
+                                {% else %}
+                                <input type="submit" value="Favorite"
+                                    class="btn btn-outline-success"
+                                    onclick="updateTable({{ loop.index }});">
+                                {% endif %}
+                                <input type="submit" value="Delete"
+                                    class="btn btn-outline-danger"
+                                    onclick="updateTable({{ loop.index }});">
+    
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% endblock %}
+    
+    {% block scripts %}
+    <script>
+        function displayRecipe(recipeId, recipeTitle, recipeUrl) {
+            let selectedRecipe = document.getElementById("selected-recipe");
+            selectedRecipe.innerHTML = `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>${recipeTitle}</h3>
+                </div>
+                <div class="card-body">
+                    <a href="${recipeUrl}" target="_blank" class="btn btn-primary">View Recipe</a>
+                </div>
+            </div>
+        `;
+        }
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tableHeaders = document.querySelectorAll("th.sortable");
+
+            tableHeaders.forEach(header => {
+                header.addEventListener("click", function () {
+                    const sort_by = header.getAttribute("data-column");
+                    const order = header.getAttribute("data-order");
+
+                    window.location = `{{ url_for("account") }}?sort_by=${sort_by}&order=${order}`;
+                });
+
+                header.style.cursor = "pointer";
+            });
+        });
+    </script>
+    
+    <script>
+        function updateTable(index) {
+            // Get all rows in the table
+            let tableRows = document.querySelectorAll("tbody tr");
+
+            // Remove the selected row from the table
+            tableRows[index - 1].remove();
+
+            // Update the table counter for all remaining rows
+            for (let i = index - 1; i < tableRows.length; i++) {
+                tableRows[i].querySelector("td").innerText = i + 1;
+            }
+        }
+    </script>
+    
+    {% endblock %}
+</MENU>
