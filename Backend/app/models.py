@@ -1,17 +1,16 @@
 import os
 import base64
-from datetime import datetime, timedelta
-from app import db
+from datetime import datetime
+from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, current_user
-from app import db, login
+from flask_sqlalchemy import SQLAlchemy
 
 login_manager = LoginManager()
 
 favorites = db.Table('favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True))
-
 
 user_recipes = db.Table('user_recipes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
@@ -21,6 +20,7 @@ latest_users = db.Table('latest_users',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True),
     db.Column('timestamp', db.DateTime, default=datetime.utcnow, nullable=False))
+
 
 
  
@@ -35,14 +35,13 @@ class User(db.Model, UserMixin):
     favorites = db.relationship('Recipe', secondary=favorites, lazy='dynamic',
         backref=db.backref('favorited_by', lazy='dynamic'))
     recipes = db.relationship('Recipe', secondary=user_recipes, backref=db.backref('users', lazy='dynamic'))
+    api_recipe = db.Column(db.Boolean, default=False)  # 
    
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.password = generate_password_hash(kwargs.get('password'))
-        db.session.add(self)
-        db.session.commit()
-
+        
     def __repr__(self):
         return f"<User {self.id}|{self.username}>"
     
@@ -53,10 +52,33 @@ class User(db.Model, UserMixin):
         "last_name": self.last_name,
         "email": self.email,
         "username": self.username,
-    }
+        }
 
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
+
+def store_recipes(recipes, user_id):
+    if not current_user.is_authenticated or not current_user.is_active:
+        return
+
+    for recipe in recipes:
+        existing_recipe = Recipe.query.filter_by(id=recipe['id']).first()
+
+        if not existing_recipe:
+            new_recipe = Recipe(
+                id=recipe.get('id', ''),
+                title=recipe.get('title', ''),
+                link=recipe.get('sourceUrl', ''),
+                image=recipe.get('image', ''),
+                date_created=datetime.now(),
+                user_id=user_id,
+                api_recipe=True
+            )
+            db.session.add(new_recipe)
+    db.session.commit()
+    
+
+
 
 @login.user_loader
 def get_a_user_by_id(user_id):
@@ -66,10 +88,11 @@ class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     link = db.Column(db.String(500))
-    image = db.Column(db.String(500))  # Add this line
+    image = db.Column(db.String(500))
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow NULL values for user_id
     latest_users = db.relationship('User', secondary=latest_users, backref=db.backref('latest_added_recipes', lazy='dynamic'), lazy='dynamic')
+    api_recipe = db.Column(db.Boolean, default=False)
 
 
 
@@ -110,7 +133,6 @@ class Recipe(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
         
-
-
+    def favorite_count(self):
+        return self.favorited_by.count()

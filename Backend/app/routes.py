@@ -1,29 +1,28 @@
 from app import app, db, forms, models
 from app.dummy_recipes import dummy_recipes
 from flask import Flask, render_template, url_for, flash, redirect, request, abort, jsonify, session
-
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
-from app.models import User, Recipe, favorites, db
+from app.models import User, Recipe, favorites, db, store_recipes
 import math
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import requests, random
 import json
 
 spoonacular_api_key = API_KEY
 
-from app import routes
 
-import json
-import requests
+
 
 def get_random_recipes():
     api_key = spoonacular_api_key
-    url = f"https://api.spoonacular.com/recipes/random?number=10&apiKey={api_key}"
+    url = f"https://api.spoonacular.com/recipes/random?number=100&apiKey={api_key}"
     response = requests.get(url)
     data = json.loads(response.text)
     random_recipes = data['recipes']
     return random_recipes
+
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -36,23 +35,32 @@ def index():
         recipes = session.get('random_recipes', [])
     else:
         recipes = get_random_recipes()
+        user_id = current_user.get_id()  # Get the current user's ID
+        store_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
         session['random_recipes'] = recipes
 
     # Filter out recipes with missing data
     valid_recipes = [recipe for recipe in recipes if recipe.get('title') and recipe.get('sourceUrl')]
 
-    # Combine fetched recipes and dummy data
-    all_recipes = valid_recipes + dummy_recipes
-
     # Define total pages based on number of recipes and recipes per page
-    recipes_per_page = 10
-    total_pages = int(math.ceil(len(all_recipes) / recipes_per_page))
+    recipes_per_page = 25
+    total_pages = int(math.ceil(len(valid_recipes) / recipes_per_page))
 
     # Get current page from query parameter or default to 1
     current_page = int(request.args.get('page', 1))
+
+    # Add dummy recipes to the valid recipes list if it's the last page
+    if current_page == total_pages:
+        valid_recipes += dummy_recipes
+
+    # Slice the recipes list to show only the recipes for the current page
+    start_index = (current_page - 1) * recipes_per_page
+    end_index = start_index + recipes_per_page
+    displayed_recipes = valid_recipes[start_index:end_index]
+
     search_form = forms.SearchForm()  # Create an instance of the search form
 
-    return render_template('index.html', title='Home', recipes=all_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
+    return render_template('index.html', title='Home', recipes=displayed_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
 
 
 
@@ -64,8 +72,6 @@ def search():
     if input_value:
         return redirect(url_for('results', search_term=input_value, page=1))
     return render_template('index.html', form=form, title='Home')  # Pass the form and title to the template
-
-
 
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
@@ -86,6 +92,35 @@ def results(search_term, page=1):
         flash('Error in API request')
         return redirect(url_for('index'))
 
+@app.route('/toggle_favorite', methods=['POST'])
+@login_required
+def toggle_favorite():
+    recipe_id = request.form.get('recipe_id')
+    recipe_title = request.form.get('recipe_title')
+    recipe_image = request.form.get('recipe_image')
+    recipe = Recipe.query.get(recipe_id)
+
+    if not recipe:
+        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
+        db.session.add(recipe)
+        db.session.commit()
+
+    if current_user in recipe.favorited_by.all():
+        # Remove the recipe from the user's favorites
+        current_user.favorites.remove(recipe)
+        db.session.commit()
+        flash(f'{recipe.title} removed from favorites.', 'danger')
+    else:
+        # Add the recipe to the user's favorites
+        current_user.favorites.append(recipe)
+        db.session.commit()
+        flash(f'{ recipe.title} added to favorites.', 'success')
+
+    referrer = request.referrer  # Correct the indentation here
+    if 'results' in referrer:
+        return redirect(referrer)
+    else:
+        return redirect(url_for('index', _method='POST', _external=True))
 
 @app.route('/favorite', methods=['POST'])
 def favorite():
@@ -106,47 +141,7 @@ def favorite():
         return redirect(referrer)
     else:
         return redirect(url_for('account'))
-
-
-@app.route('/toggle_favorite', methods=['POST'])
-@login_required
-def toggle_favorite():
-    recipe_id = request.form.get('recipe_id')
-    recipe_title = request.form.get('recipe_title')
-    recipe_image = request.form.get('recipe_image')
-    recipe = Recipe.query.get(recipe_id)
-
-    if not recipe:
-        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
-        db.session.add(recipe)
-        db.session.commit()
-
-    if current_user in recipe.favorited_by.all():
-        # Remove the recipe from the user's favorites
-        current_user.favorites.remove(recipe)
-        if current_user in recipe.latest_users.all():  # Check if the relationship exists
-            recipe.latest_users.remove(current_user)
-        db.session.commit()
-        flash(f'{recipe.title} removed from favorites.', 'danger')
-    else:
-        # Add the recipe to the user's favorites
-        current_user.favorites.append(recipe)
-        recipe.latest_users.append(current_user)
-        if len(recipe.latest_users.all()) > 3:
-            oldest_user = min(recipe.latest_users, key=lambda user: user.latest_added_recipes.filter_by(id=recipe.id).first().timestamp)
-            recipe.latest_users.remove(oldest_user)
-        db.session.commit()
-        flash(f'{ recipe.title} added to favorites.', 'success')
-
-    referrer = request.referrer  # Correct the indentation here
-    if 'results' in referrer:
-        return redirect(referrer)
-    else:
-        return redirect(url_for('index', _method='POST', _external=True))
-
-
-
-
+    
 @app.route('/random_recipes')
 def random_recipes():
     api_key = "YOUR_SPOONACULAR_API_KEY"
@@ -253,10 +248,3 @@ def delete_recipe(recipe_id):
     db.session.commit()
     flash(f"{recipe_to_delete.title} has been deleted", "info")
     return redirect(url_for('account'))
-
-
-
-
-
-    
-    
