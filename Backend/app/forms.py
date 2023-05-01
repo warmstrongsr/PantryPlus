@@ -28,7 +28,13 @@ class SignUpForm(FlaskForm):
 
 class SearchForm(FlaskForm):
     search_term = StringField('Search', validators=[DataRequired()])
-    submit = SubmitField('Search')
+    submit = SubmitField('Submit')
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
+        if 'default_search_term' in kwargs:
+            self.search_term.data = kwargs['default_search_term']
+
 
     
     

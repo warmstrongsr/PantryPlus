@@ -14,6 +14,16 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .btn {
+    margin:auto;
+    display:block;
+}
+body{
+    background-color: black;
+}
+
+</style>
 
 
 <!-- Add this div to display the selected recipe -->
@@ -21,7 +31,7 @@
 </div>
 
 <div class="row d-flex justify-content-center">
-    <div class="col-10 col-lg-10 order-0 order-lg-1">
+    <div class="col-10 col-lg-9 order-0 order-lg-1">
         <table
             class="table  table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
@@ -38,7 +48,8 @@
                 </tr>
             </thead>
             <tbody>
-                {% for recipe in recipes %}
+                {% for recipe in recipes.items %}
+
                 {% if recipe.title is not none %}
                 <tr>
                     <td class="text-center">{{ loop.index }}</td><!-- Add the counter value -->
@@ -137,11 +148,17 @@
             button.classList.add("btn-pressed");
         }
 
-    $(function () {
-            $('#recipe-modal').on('hidden.bs.modal', function () {
-                $('.btn-pressed').removeClass('btn-pressed');
-            });
+   $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
         });
+    });
 </script>
 {% endblock %}
 
@@ -193,6 +210,40 @@
         }
     }
 </script>
+{% if recipes.pages > 1 %}
+<div class="container" style="border-radius: 0">
+    <div class="row row-cols-1  mt-3 " style="border-radius: 0">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li
+                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page-1) }}" {% if
+                        current_page==1 %}aria-disabled="true" {% endif
+                        %}>Previous</a>
+                </li>
+            {% for i in range(1, recipes.pages+1) %}
+                <li
+                    class="page-item {% if current_page == i %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=i) }}">{{
+                        i }}</a>
+                </li>
+                {% endfor %}
+                <li
+                    class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page+1) }}" {% if
+                        current_page==total_pages %}aria-disabled="true" {%
+                        endif %}>Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+{% endif %}
+<script>
 
 {% endblock %}
    

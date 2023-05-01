@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="container" style="border-radius: 0;">
+    
     <div class="row row-cols-1 row-cols-md-3 mt-3 ">
         <form action="{{ url_for('search') }}" method="GET"
             class="form-inline my-2 my-lg-0">
@@ -31,44 +32,71 @@
 </style>
 
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-md-4 ">
+    <div class="row row-cols-1 row-cols-md-4">
         {% for recipe in results %}
         <div class="col-mb-4 mt-3">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
-                <div class="card-body class="text-center">
+                <div class="card-body text-center">
                     <h6 class="card-title">{{ recipe.title }}</h6>
-                <div class="d-flex align-items-center">
-                    <div class="text-center">
-                        <a href="{{ recipe.sourceUrl }}"
-                            target="_blank" rel="noopener noreferrer"
-                            class="btn btn-outline-success w-60 ml-4 mt-2" style="width: 5rem;">
-                            Recipe
-                        </a>
+                    <div class="d-flex justify-content-around mt-3">
+                        <a href="{{ recipe.sourceUrl }}" target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-outline-primary btn-sm">Recipe</a>
+                        <button class="btn btn-outline-primary btn-sm"
+                            data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
+                            onclick="highlightButton(this);">Peek</button>
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline" id="favorite-form">
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
+                            <input type="hidden" name="recipe_title"
+                                value="{{ recipe.title }}">
+                            <input type="hidden" name="recipe_image"
+                                value="{{ recipe.image }}">
+                            <button type="submit"
+                                class="btn btn-outline-primary btn-sm">Favorite</button>
+                        </form>
                     </div>
-                    <div class="text-center">
-                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-inline"
-                        id="favorite-form">
-
-                        {{ form.csrf_token }}
-                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-                        <input type="hidden" name="recipe_title" value="{{ recipe.title }}">
-                        <input type="hidden" name="recipe_image" value="{{ recipe.image }}">
-                        <button type="submit" class="btn btn-outline-warning w-60 ml-4 mt-2 btn-responsive">
-                            Favorite
-                        </button>
-                    </form>
-                    </div>
-                </div>
-
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
-</div>
+
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Image</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="" class="img-fluid" alt="Recipe Image">
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="modal-title">Original Source Link</h5>
+                        <ul class="list-group">
+                            {% for recipe in recipes %}
+                            <li class="list-group-item">{{ recipe.ingredients }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <h5 class="modal-title">Instructions</h5>
+                        {% for recipe in recipes %}
+                        <p>{{ recipe.instructions }}</p>
+                        {% endfor %}
 
 <div class="container" style="border-radius: 0">
     <div class="row row-cols-1  mt-3 " style="border-radius: 0">
@@ -100,4 +128,37 @@
         </nav>
     </div>
 </div>
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const imageUrl = button.data("image-url");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+</script>
 {% endblock %}

@@ -91,7 +91,7 @@ def search():
     
     if input_value:
         return redirect(url_for('results', search_term=input_value, page=1))
-    return render_template('index.html', form=form, title='Home')  # Pass the form and title to the template
+    return render_template('index.html', form=form, title='Home', input_value=input_value)  # Pass the form and title to the template
 
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
@@ -99,7 +99,7 @@ def results(search_term, page=1):
     results_per_page = 36  # Set the desired number of results per page
     url = f'https://api.spoonacular.com/recipes/findByIngredients?number=100&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
-    form = forms.SearchForm()
+    form = forms.SearchForm(default_search_term=search_term) 
 
     if response.status_code == 200:
         all_results_data = response.json()

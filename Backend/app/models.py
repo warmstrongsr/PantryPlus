@@ -139,6 +139,9 @@ class Recipe(db.Model):
             user.username for user in self.favorited_by.all()]
 
         formatted_date = self.date_created.strftime('%B %d, %Y %I:%M %p')
+        
+        ingredients = [ingredient.text for ingredient in self.ingredients]
+        instructions = [instruction.text for instruction in self.instructions]
 
         return {
             "id": self.id,
@@ -149,6 +152,8 @@ class Recipe(db.Model):
             "is_favorite": is_favorite,
             "image": self.image,
             "favorited_by_usernames": favorited_by_usernames,
+            "ingredients": ingredients,
+            "instructions": instructions,
         }
 
     def update(self, data):

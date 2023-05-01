@@ -24,41 +24,89 @@
 {% if current_user.is_authenticated %}
 {% if recipes %}
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6">
         {% for recipe in recipes %}
         {% if recipe %}
         <div class="col mb-0 mt-4">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
-                <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID:
-                            {{recipe.id}}</small></h6>
+                <div class="card-body  justify-content-center">
+                    <small class="card-title">ID: {{ recipe.id }}</small>
+                    <h6 class="card-title"><a href="{{ recipe.sourceUrl }}"
+                            target="_blank">{{ recipe.title }} </a></h6>
                     <div class="d-flex gap-2">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View
-                            Recipe</a>
-                    {% if current_user.is_authenticated %}
-                    <form method="post" action="{{ url_for('toggle_favorite') }}" class="d-flex">
-                        {{ form.csrf_token }}
-                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-                        <input type="hidden" name="recipe_title" value="{{ recipe.title }}">
-                        <input type="hidden" name="recipe_image" value="{{ recipe.image }}">
-                        {% if recipe.is_favorite %}
-                        <input type="submit" value="Unfavorite"
-                            class="btn btn-outline-danger btn-group-sm">
-                        {% else %}
-                        <input type="submit" value="Favorite"
-                            class="btn btn-outline-success btn-group-sm">
+                        <button class="btn btn-outline-primary btn-sm btn-block" data-toggle="modal"
+                            data-target="#recipe-modal" data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
+                            data-recipe-instructions="{{ recipe.instructions|truncate(200, True) }}"
+                            data-recipe-source-url="{{ recipe.sourceUrl }}"
+                            data-recipe-title="{{ recipe.title }}" onclick="highlightButton(this);">
+                            Quick Look
+                        </button>
+
+                        </button>
+                        {% if current_user.is_authenticated %}
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="justify-content-end">
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
+                            <input type="hidden" name="recipe_title"
+                                value="{{ recipe.title }}">
+                            <input type="hidden" name="recipe_image"
+                                value="{{ recipe.image }}">
+                            {% if recipe.is_favorite %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger btn-block">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success btn-sm btn-block">
+                            {% endif %}
+                        </form>
                         {% endif %}
-                    </form>
-                    {% endif %}
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
         {% endfor %}
+    </div>
+</div>
+{% endif %}
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-recipe-title"></h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="" class="img-fluid" alt="Recipe Image">
+                    </div>
+                    <!-- Inside the modal -->
+                    <<div class="col-md-6">
+    <h5 class="modal-title">Instructions</h5>
+    <p id="recipe-instructions"></p>
+    <a id="recipe-link" href="" target="_blank" class="btn btn-outline-primary">View Recipe</a>
+</div>
+</div>
+{% for recipe in recipes %}
+<h5 class="modal-title" id="modal-recipe-title"></h5>
+
+{% else %}
+<h5 class="modal-title">No recipes found</h5>
+{% endfor %}
+                    </div>
+                </div>
+            </div> 
+        </div>
     </div>
 </div>
 {% endif %}
@@ -86,13 +134,58 @@
                     class="page-item {% if current_page == total_pages %}disabled{% endif %}">
                     <a class="page-link"
                         href="{{ url_for('index', page=current_page+1) }}" {% if
-                        current_page==total_pages %}aria-disabled="true"{% endif %}>Next</a>
+                        current_page==total_pages %}aria-disabled="true" {%
+                        endif %}>Next</a>
                 </li>
             </ul>
         </nav>
     </div>
 </div>
+
 {% endif %}
-{% endif %}
+<script>
+
+
+
+
+    $(function () {
+            const modal = $("#recipe-modal");
+            const image = modal.find("img");
+
+            modal.on("show.bs.modal", function (event) {
+                const button = $(event.relatedTarget);
+                const recipeId = button.data("recipe-id");
+                const recipeTitle = button.data("recipe-title");
+                const imageUrl = button.data("image-url");
+                const recipeInstructions = button.data("recipe-instructions");
+                const recipeSourceUrl = button.data("recipe-source-url");
+
+                $("#recipe-instructions").text(recipeInstructions);
+                $("#recipe-link").attr("href", recipeSourceUrl);
+
+                image.attr("src", imageUrl);
+                image.attr("alt", "Recipe Image");
+
+                // Set the recipe title and id in the modal
+                $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
+            });
+        });
+
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+</script>
 
 {% endblock %}

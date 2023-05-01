@@ -13,6 +13,16 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .btn {
+        margin: auto;
+        display: block;
+    }
+    .btn-pressed {
+  background-color: yellow;
+}
+
+</style>
 
 
 <!-- Add this div to display the selected recipe -->
@@ -20,7 +30,7 @@
 </div>
 
 <div class="row d-flex justify-content-center">
-    <div class="col-10 col-lg-10 ">
+    <div class="col-10 col-lg-9 ">
         <table
             class="table table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
@@ -44,7 +54,7 @@
                 {% if recipe.title is not none %}
                 <tr>
                     <td class="text-center">{{ loop.index }}</td> <!-- Add the counter value -->
-                    <td class="text-center"><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                    <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                             target="_blank">{{ recipe.title}}</a></td>
                     <td class="text-center">
                         <a
@@ -53,8 +63,8 @@
                     </td>
                     <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
-                        <button class="btn btn-primary" data-toggle="modal" data-target="#recipe-modal"
-                            data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}">
+                        <button class="btn btn-outline-primary" data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}" onclick="highlightButton(this);">
                             Quick Look
                         </button>
                     </td>
@@ -195,19 +205,36 @@
 
 <script>
     $(function () {
-        // Get a reference to the modal and image elements
-        const modal = $("#recipe-modal");
-        const image = modal.find("img");
+            // Get a reference to the modal and image elements
+            const modal = $("#recipe-modal");
+            const image = modal.find("img");
 
-        // Update the image source and alt text when the modal is opened
-        modal.on("show.bs.modal", function (event) {
-            const button = $(event.relatedTarget);
-            const imageUrl = button.data("image");
+            // Update the image source and alt text when the modal is opened
+            modal.on("show.bs.modal", function (event) {
+                const button = $(event.relatedTarget);
+                const recipeId = button.data("recipe-id");
+                const imageUrl = button.data("image-url");
 
-            image.attr("src", imageUrl);
-            image.attr("alt", "Recipe Image");
+                image.attr("src", imageUrl);
+                image.attr("alt", "Recipe Image");
+            });
         });
-    });
+
+        function highlightButton(button) {
+            button.classList.add("btn-pressed");
+        }
+
+        $(function () {
+            $('#recipe-modal').on('hidden.bs.modal', function () {
+                const button = $('.btn-pressed');
+                button.removeClass('btn-pressed');
+
+                // Remove the highlight effect after 3 seconds
+                setTimeout(function (btn) {
+                    btn.removeClass('btn-pressed');
+                }, 7000, button);
+            });
+        });
 </script>
 
 
