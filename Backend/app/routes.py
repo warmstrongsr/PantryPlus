@@ -6,6 +6,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
 from app.models import User, Recipe, favorites, db, store_recipes
+from datetime import datetime
 import math
 import requests, random
 import json
@@ -77,21 +78,10 @@ def fullmenu():
         search_term = form.search_term.data
         recipes = recipes.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%")))
 
-    # Sort the recipes
-    if sort_by == 'title':
-        recipes = recipes.order_by(Recipe.title.asc() if order == 'asc' else Recipe.title.desc())
-    elif sort_by == 'recipe_id':
-        recipes = recipes.order_by(Recipe.id.asc() if order == 'asc' else Recipe.id.desc())
-    else:
-        recipes = recipes.order_by(Recipe.date_created.asc() if order == 'asc' else Recipe.date_created.desc())
-
     # Get the final list of recipes from the query
     recipes = recipes.all()
 
     return render_template('full_menu.html', recipes=recipes, form=form, sort_by=sort_by, order=order)
-
-
-
 
 
 @app.route('/search', methods=['GET'])
@@ -106,8 +96,8 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 15  # Set the desired number of results per page
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=45&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    results_per_page = 36  # Set the desired number of results per page
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=100&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm()
 
@@ -122,8 +112,8 @@ def results(search_term, page=1):
         flash('Error in API request')
         return redirect(url_for('index'))
 
-@app.route('/toggle_favorite', methods=['POST'])
 @login_required
+@app.route('/toggle_favorite', methods=['POST'])
 def toggle_favorite():
     recipe_id = request.form.get('recipe_id')
     recipe_title = request.form.get('recipe_title')
@@ -131,26 +121,27 @@ def toggle_favorite():
     recipe = Recipe.query.get(recipe_id)
 
     if not recipe:
-        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
+        recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image)
         db.session.add(recipe)
-        db.session.commit()
 
-    if current_user in recipe.favorited_by.all():
+    if current_user in recipe.favorited_users:
         # Remove the recipe from the user's favorites
-        current_user.favorites.remove(recipe)
-        db.session.commit()
+        recipe.favorited_users.remove(current_user)
         flash(f'{recipe.title} removed from favorites.', 'danger')
     else:
-        # Add the recipe to the user's favorites
-        current_user.favorites.append(recipe)
-        db.session.commit()
-        flash(f'{ recipe.title} added to favorites.', 'success')
+        # Add the recipe to the user's favorites and set the date_favorited attribute
+        recipe.favorited_users.append(current_user)
+        recipe.date_favorited = datetime.utcnow()
+        flash(f'{recipe.title} added to favorites.', 'success')
 
-    referrer = request.referrer  # Correct the indentation here
+    db.session.commit()
+
+    referrer = request.referrer
     if 'results' in referrer:
         return redirect(referrer)
     else:
         return redirect(url_for('index', _method='POST', _external=True))
+
 
 @app.route('/favorite', methods=['POST'])
 def favorite():
@@ -191,14 +182,41 @@ def add_recipe():
 @login_required
 def account():
     form = SearchForm()
-    recipes = current_user.favorites.order_by(Recipe.date_created.asc()).all()
     username = current_user.username
-
+    
     if form.validate_on_submit():
         search_term = form.search_term.data
         recipes = Recipe.query.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%")), Recipe.user_id==current_user.id).order_by(Recipe.user_id.asc()).all()
+    else:
+        recipes = Recipe.query.filter(Recipe.favorited_by.any(id=current_user.id)).order_by(Recipe.date_created.desc()).all()
+
+
+    if request.method == 'POST':
+        recipe_id = request.form.get('recipe_id')
+        recipe_title = request.form.get('recipe_title')
+        recipe_image = request.form.get('recipe_image')
+        recipe = Recipe.query.get(recipe_id)
+
+        if not recipe:
+            recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
+            db.session.add(recipe)
+            db.session.commit()
+
+        if current_user in recipe.favorited_by.all():
+            # Remove the recipe from the user's favorites
+            current_user.favorites.remove(recipe)
+            db.session.commit()
+            flash(f'{recipe.title} removed from favorites.', 'danger')
+        else:
+            # Add the recipe to the user's favorites
+            current_user.favorites.append(recipe)
+            db.session.commit()
+            flash(f'{recipe.title} added to favorites.', 'success')
+
+        recipes = current_user.latest_added_recipes.order_by(Recipe.date_created.desc()).all()
 
     return render_template('account.html', recipes=recipes, form=form, username=username)
+
 
 
 @app.route('/signup', methods=["GET", "POST"])

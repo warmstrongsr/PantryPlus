@@ -34,42 +34,39 @@
                     <th>Recipe ID</th>
                     <th>Date Added</th>
                     <th>Latest Users</th>
-                    <th>Actions</th>
+                    <th>Favorite</th>
                 </tr>
             </thead>
             <tbody>
                 {% for recipe in recipes %}
                 {% if recipe.title is not none %}
                 <tr>
-                    <td>{{ loop.index }}</td> <!-- Add the counter value -->
+                    <td class="text-center">{{ loop.index }}</td><!-- Add the counter value -->
                     <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                             target="_blank">{{ recipe.title}}</a></td>
-                    <td>
+                    <td class="text-center">
                         <a
                             href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
                             recipe.id }}</a>
                     </td>
-                    <!-- <td><a href="#"
-                            onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
-                            recipe.title}}</a></td>
-                    <td>
-                        <a href="#"
-                            onclick="displayRecipe('{{ recipe.id }}', '{{ recipe.title }}', '{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}')">{{
-                            recipe.id }}</a>
-                    </td> -->
-                    <td>{{ recipe.date_created }}</td>
-                    <td>
-                        {% for user in recipe.latest_users %}
-                        {{ user }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
+        
+                    <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}
                     </td>
+                    
+                <!-- image modal -->
+                <td>
+                    <button class="btn btn-outline-primary btn-sm btn-block data-toggle="button" aria-pressed="false" autocomplete="off"" data-toggle="modal" data-target="#recipe-modal"
+                        data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}" onclick="highlightButton(this);">
+                        Quick Look
+                    </button>
+                </td>
                     <td>
-                        {% if recipe.user == current_user %}
+                        <!-- {% if recipe.user == current_user %}
                         <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
                             class="btn btn-success">Edit</a>
                         <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
                             class="btn btn-danger">Delete</a>
-                        {% endif %}
+                        {% endif %} -->
                         {% if current_user.is_authenticated %}
                         <form method="post"
                             action="{{ url_for('toggle_favorite') }}"
@@ -78,20 +75,20 @@
                             {{ form.csrf_token }}
                             <input type="hidden" name="recipe_id"
                                 value="{{ recipe.id }}">
-                            {% if current_user in recipe.favorited_by.all() %}
+                            {% if current_user in recipe.favorited_by %}
                             <input type="submit" value="Unfavorite"
-                                class="btn btn-outline-danger"
+                                class="btn btn-outline-danger btn-sm center"
                                 onclick="updateTable({{ loop.index }});">
                             {% else %}
                             <input type="submit" value="Favorite"
-                                class="btn btn-outline-success"
+                                class="btn btn-outline-success btn-sm"
                                 onclick="updateTable({{ loop.index }});">
                             {% endif %}
-                            <input type="submit" value="Delete"
+                            <!-- <input type="submit" value="Delete"
                                 class="btn btn-outline-danger"
                                 onclick="updateTable({{ loop.index }});">
 
-                            {% endif %}
+                            {% endif %} -->
                         </form>
                     </td>
                 </tr>
@@ -101,7 +98,51 @@
         </table>
     </div>
 </div>
+<!-- Modal for displaying recipe images -->
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Image</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" class="img-fluid" alt="Recipe Image">
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const imageUrl = button.data("image-url");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+
+    function highlightButton(button) {
+            button.classList.add("btn-pressed");
+        }
+
+    $(function () {
+            $('#recipe-modal').on('hidden.bs.modal', function () {
+                $('.btn-pressed').removeClass('btn-pressed');
+            });
+        });
+</script>
 {% endblock %}
 
 {% block scripts %}
@@ -154,3 +195,4 @@
 </script>
 
 {% endblock %}
+   

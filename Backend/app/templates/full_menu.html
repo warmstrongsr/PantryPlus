@@ -20,7 +20,7 @@
 </div>
 
 <div class="row d-flex justify-content-center">
-    <div class="col-10 col-lg-12 ">
+    <div class="col-10 col-lg-10 ">
         <table
             class="table table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
@@ -36,26 +36,27 @@
                         data-order="{{ 'asc' if sort_by == 'date_created' and order == 'desc' else 'desc' if sort_by == 'date_created' and order == 'asc' else 'asc' }}">
                         Date Added</th>
                     <th>Quick Look</th>
-                    <th>Actions</th>
+                    <th>Favorite</th>
                 </tr>
             </thead>
             <tbody>
                 {% for recipe in recipes %}
                 {% if recipe.title is not none %}
                 <tr>
-                    <td>{{ loop.index }}</td> <!-- Add the counter value -->
-                    <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                    <td class="text-center">{{ loop.index }}</td> <!-- Add the counter value -->
+                    <td class="text-center"><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                             target="_blank">{{ recipe.title}}</a></td>
-                    <td>
+                    <td class="text-center">
                         <a
                             href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
                             recipe.id }}</a>
                     </td>
-                    <td>{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
-                        {% for user in recipe.latest_users %}
-                        {{ user }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}">
+                            Quick Look
+                        </button>
                     </td>
                     <td>
                         {% if recipe.user == current_user %}
@@ -72,7 +73,7 @@
                             {{ form.csrf_token }}
                             <input type="hidden" name="recipe_id"
                                 value="{{ recipe.id }}">
-                            {% if current_user in recipe.favorited_by.all() %}
+                            {% if current_user in recipe.favorited_by %}
                             <input type="submit" value="Unfavorite"
                                 class="btn btn-outline-danger"
                                 onclick="updateTable({{ loop.index }});">
@@ -95,6 +96,51 @@
         </table>
     </div>
 </div>
+<!-- Modal for displaying recipe images -->
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Image</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" class="img-fluid" alt="Recipe Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const imageUrl = button.data("image-url");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+
+      function highlightButton(button) {
+            button.classList.add("btn-pressed");
+        }
+
+        $(function () {
+            $('#recipe-modal').on('hidden.bs.modal', function () {
+                $('.btn-pressed').removeClass('btn-pressed');
+            });
+        });
+</script>
 
 {% endblock %}
 
@@ -146,5 +192,23 @@
         }
     }
 </script>
+
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const imageUrl = button.data("image");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+</script>
+
 
 {% endblock %}

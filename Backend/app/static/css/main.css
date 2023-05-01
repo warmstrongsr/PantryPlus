@@ -1,0 +1,12 @@
+body{
+    background-color: blue;
+}
+
+.btn-pressed {
+  background-color: yellow;
+}
+
+.btn {
+    margin:auto;
+    display:block;
+}
