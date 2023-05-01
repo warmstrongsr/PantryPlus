@@ -177,23 +177,21 @@ def add_recipe():
     return render_template('add_recipe.html', title='Add Recipe', form=form)
 
 
-
 @app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
     form = SearchForm()
     username = current_user.username
-    
+
     if form.validate_on_submit():
         search_term = form.search_term.data
-        recipes = Recipe.query.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%")), Recipe.user_id==current_user.id).order_by(Recipe.user_id.asc()).all()
-    else:
-        recipes = Recipe.query.filter(Recipe.favorited_by.any(id=current_user.id)).order_by(Recipe.date_created.desc()).all()
-
+        recipes = current_user.favorites.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%"))).order_by(Recipe.date_created.asc()).all()
+    else: #remove null value or non-title recipes from view
+        recipes = current_user.latest_added_recipes.filter(Recipe.title != None).order_by(Recipe.date_created.desc()).all()
 
     if request.method == 'POST':
         recipe_id = request.form.get('recipe_id')
-        recipe_title = request.form.get('recipe_title')
+        recipe_title = request.form.get('recipe_title', '')
         recipe_image = request.form.get('recipe_image')
         recipe = Recipe.query.get(recipe_id)
 
@@ -213,10 +211,7 @@ def account():
             db.session.commit()
             flash(f'{recipe.title} added to favorites.', 'success')
 
-        recipes = current_user.latest_added_recipes.order_by(Recipe.date_created.desc()).all()
-
     return render_template('account.html', recipes=recipes, form=form, username=username)
-
 
 
 @app.route('/signup', methods=["GET", "POST"])
