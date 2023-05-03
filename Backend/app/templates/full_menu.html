@@ -4,7 +4,7 @@
 
 {% block header %}
 {% if current_user.is_authenticated %}
-<h1>Full Menu <h4>Total recipes: {{ recipes|length }}</h4></h1>
+<h3>Full Menu <h4>Total recipes: {{ recipes|length }}</h4></h3>
 {% if recipes %}
 {% endif %}
 {% else %}
@@ -14,6 +14,10 @@
 
 {% block content %}
 <style>
+
+    body {
+    background-color: black;
+    }
     .btn {
         margin: auto;
         display: block;
@@ -25,6 +29,11 @@
 .btn {
     margin:auto;
     display:block;
+}
+ .modal-body img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
 }
 
 
@@ -117,7 +126,9 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Recipe Image</h5>
+            <div class="col text-center text-primary-emphasis">
+                <h4 class="modal-title" id="modal-recipe-title"></h4>
+            </div>
                 <button type="button" class="close" data-dismiss="modal"
                     aria-label="Close">
                     <span aria-hidden="true">&times;</span>

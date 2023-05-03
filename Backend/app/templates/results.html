@@ -1,54 +1,62 @@
 {% extends 'base.html' %}
-
+<link rel="stylesheet" href="../static/css/main.css">
 {% block title %} Results {% endblock %}
 
-{% block content %}
-<div class="container" style="border-radius: 0;">
-    
-    <div class="row row-cols-1 row-cols-md-3 mt-3 ">
-        <form action="{{ url_for('search') }}" method="GET"
-            class="form-inline my-2 my-lg-0">
+{% block header %}
+<h1>
+    <div class="container my-3 px-5">
+        <div class="row">
+            <div class="col text-center">
+                <div class="mb-0">Search Results for "{{ search_term }}"</div>
+            </div>
+        </div>
+    </div>
+</h1>
+<div class="container" style="border-radius: 2;">
+    <div class="col-col-3 -lg-3 ">
+        <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term.label }} {{ form.search_term }}
-            {{ form.submit }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search
+            by ingredients") }}
+            <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
-   
 </div>
+{% endblock %}
+{% block content %}
 
 <style>
-    .custom-card {
-        max-width: 350px;
-        /* Replace [custom_width] with the desired width */
-        height: 400px;
-        /* Replace [custom_height] with the desired height */
+
+    .modal-body img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
     }
 
-    .btn-responsive {
-        width: 100%;
-        max-width: 8rem;
-        margin: 0 0.5rem;
-    }
 </style>
 
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-md-4">
+    <div class="row row-cols-1 row-cols-md-5 mt-4">
         {% for recipe in results %}
-        <div class="col-mb-4 mt-3">
+        <div class="col mb-0 mt-4">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
-                    <h6 class="card-title">{{ recipe.title }}</h6>
-                    <div class="d-flex justify-content-around mt-3">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn btn-outline-primary btn-sm">Recipe</a>
+                    <div class="card-content">
+                        <h6 class="card-title">{{ recipe.title }}</h6>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn btn-outline-warning btn-sm show-warning-modal" data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank" rel="noopener noreferrer"
+                            class="btn btn-outline-warning btn-sm">Recipe</button>
                         <button class="btn btn-outline-primary btn-sm"
                             data-toggle="modal" data-target="#recipe-modal"
                             data-recipe-id="{{ recipe.id }}"
                             data-image-url="{{ recipe.image }}"
-                            onclick="highlightButton(this);">Peek</button>
+                            data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            data-recipe-title="{{ recipe.title }}"
+                            onclick="highlightButton(this);">Zoom</button>
                         <form method="post"
                             action="{{ url_for('toggle_favorite') }}"
                             class="d-inline" id="favorite-form">
@@ -59,8 +67,13 @@
                                 value="{{ recipe.title }}">
                             <input type="hidden" name="recipe_image"
                                 value="{{ recipe.image }}">
-                            <button type="submit"
-                                class="btn btn-outline-primary btn-sm">Favorite</button>
+                            {% if recipe.is_favorite %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger btn-block">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success btn-sm btn-block">
+                            {% endif %}
                         </form>
                     </div>
                 </div>
@@ -70,33 +83,117 @@
     </div>
 </div>
 
+
+<!-- Modal -->
 <div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Recipe Image</h5>
+                <div class="col text-center text-primary-emphasis">
+                    <h5><a href="#" class="modal-title-link"
+                        id="modal-recipe-title"target="_blank" rel="noopener noreferrer"></a></h5>
+                </div>
                 <button type="button" class="close" data-dismiss="modal"
                     aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img src="" class="img-fluid" alt="Recipe Image">
-                    </div>
-                    <div class="col-md-6">
-                        <h5 class="modal-title">Original Source Link</h5>
-                        <ul class="list-group">
-                            {% for recipe in recipes %}
-                            <li class="list-group-item">{{ recipe.ingredients }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        <h5 class="modal-title">Instructions</h5>
-                        {% for recipe in recipes %}
-                        <p>{{ recipe.instructions }}</p>
-                        {% endfor %}
+
+                <img src="" class="img-fluid" alt="Recipe Image">
+            </div>
+            <!-- Inside the modal -->
+        </div>
+    </div>
+</div>
+
+<!-- Warning Modal -->
+<div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Warning</h5>
+                <button type="button" class="close" data-bs-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You will be redirected to an external website. Click outside
+                    the modal or on the "X" button to stay on this page.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">Back</button>
+                <button type="button" class="btn btn-primary"
+                    id="continue-external">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(function () {
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const recipeTitle = button.data("recipe-title");
+            const imageUrl = button.data("image-url");
+            const recipeSourceUrl = button.data("recipe-source-url");
+
+
+            $("#recipe-link").attr("href", recipeSourceUrl);
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+
+            // Set the recipe title and id in the modal
+
+            const titleLink = $("#modal-recipe-title");
+            $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
+            titleLink.attr("href", recipeSourceUrl);
+        });
+    });
+
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+</script>
+
+<script>
+    // Show warning modal when "Recipe" button is clicked
+    $(".show-warning-modal").on("click", function (event) {
+        event.preventDefault();
+        const recipeUrl = $(this).data("recipe-url");
+        $("#continue-external").data("recipe-url", recipeUrl);
+        $("#warning-modal").modal("show");
+    });
+
+    // Redirect the user when the "Continue" button is clicked in the warning modal
+    $("#continue-external").on("click", function () {
+        const recipeUrl = $(this).data("recipe-url");
+        window.open(recipeUrl, "_blank", "noopener noreferrer");
+        $("#warning-modal").modal("hide");
+    });
+</script>
+
 
 <div class="container" style="border-radius: 0">
     <div class="row row-cols-1  mt-3 " style="border-radius: 0">
@@ -128,37 +225,4 @@
         </nav>
     </div>
 </div>
-<script>
-    $(function () {
-        // Get a reference to the modal and image elements
-        const modal = $("#recipe-modal");
-        const image = modal.find("img");
-
-        // Update the image source and alt text when the modal is opened
-        modal.on("show.bs.modal", function (event) {
-            const button = $(event.relatedTarget);
-            const recipeId = button.data("recipe-id");
-            const imageUrl = button.data("image-url");
-
-            image.attr("src", imageUrl);
-            image.attr("alt", "Recipe Image");
-        });
-    });
-
-    function highlightButton(button) {
-        button.classList.add("btn-pressed");
-    }
-
-    $(function () {
-        $('#recipe-modal').on('hidden.bs.modal', function () {
-            const button = $('.btn-pressed');
-            button.removeClass('btn-pressed');
-
-            // Remove the highlight effect after 3 seconds
-            setTimeout(function (btn) {
-                btn.removeClass('btn-pressed');
-            }, 7000, button);
-        });
-    });
-</script>
 {% endblock %}

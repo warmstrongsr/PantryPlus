@@ -362,3 +362,309 @@ FULL <MENU>
     
     {% endblock %}
 </MENU>
+
+account
+
+{% extends 'base.html' %}
+
+{% block title %} Your Recipe Menu {% endblock %}
+
+{% block header %}
+{% if current_user.is_authenticated %}
+<h1>{{ current_user.username.title() }}'s Menu</h1>
+{% if recipes %}
+<h4>Total recipes: {{ recipes|length }}</h4>
+{% endif %}
+{% else %}
+<h5>Please Sign Up or Log In to Create or Update Menus</h5>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<style>
+    .btn {
+        margin: auto;
+        display: block;
+    }
+
+    .btn-pressed {
+        background-color: yellow;
+    }
+
+    .btn {
+        margin: auto;
+        display: block;
+    }
+
+    .btn-responsive {
+        width: 100%;
+        max-width: 8rem;
+        margin: 0 0.5rem;
+
+    }
+</style>
+
+
+
+<!-- Add this div to display the selected recipe -->
+<div id="selected-recipe">
+</div>
+
+<div class="row d-flex justify-content-center">
+    <div class="col-10 col-lg-9 order-0 order-lg-1">
+        <table
+            class="table  table-bordered table-striped bg-secondary-subtle mt-2">
+            <thead>
+                <tr class="text-center">
+
+                    <th>#</th> <!-- Add the counter column -->
+                    <!-- <th class="text-left">Title</th> -->
+                    <th class="sortable" data-column="title" data-order="asc">
+                        Title</th>
+                    <th>Recipe ID</th>
+                    <th>Date Added</th>
+                    <th>Quick View</th>
+                    <th>Favorite</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in recipes %}
+
+                {% if recipe.title is not none %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <!-- Add the counter value -->
+
+                    <td><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank">{{ recipe.title}}</a></td>
+                    <td class="text-center">
+                        <a
+                            href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
+                            recipe.id }}</a>
+                    </td>
+
+                    <td class="text-center">{{
+                        recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </td>
+                    <!-- image modal -->
+                    <td>
+                        <button
+                            class="btn btn-outline-primary btn-sm btn-block data-toggle="
+                            button" aria-pressed="false" autocomplete="off"
+                            data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
+                            onclick="highlightButton(this);">
+                            Quick Look
+                        </button>
+                    </td>
+                    <td>
+                        <!-- {% if recipe.user == current_user %}
+                        <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-success">Edit</a>
+                        <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
+                            class="btn btn-danger">Delete</a>
+                        {% endif %} -->
+                        {% if current_user.is_authenticated %}
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline" id="favorite-form">
+
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
+                            {% if current_user in recipe.favorited_by %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger btn-sm center"
+                                onclick="updateTable({{ loop.index }});">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success btn-sm"
+                                onclick="updateTable({{ loop.index }});">
+                            {% endif %}
+                            <!-- <input type="submit" value="Delete"
+                                class="btn btn-outline-danger"
+                                onclick="updateTable({{ loop.index }});"-->
+
+                            <!-- {% endif %} -->
+                        </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Modal for displaying recipe images -->
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recipe Image</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" class="img-fluid" alt="Recipe Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const imageUrl = button.data("image-url");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function displayRecipe(recipeId, recipeTitle, recipeUrl) {
+        let selectedRecipe = document.getElementById("selected-recipe");
+        selectedRecipe.innerHTML = `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3>${recipeTitle}</h3>
+                    </div>
+                    <div class="card-body">
+                        <a href="${recipeUrl}" target="_blank" class="btn btn-primary">View Recipe</a>
+                    </div>
+                </div>
+            `;
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tableHeaders = document.querySelectorAll("th.sortable");
+
+        tableHeaders.forEach(header => {
+            header.addEventListener("click", function () {
+                const sort_by = header.getAttribute("data-column");
+                const order = header.getAttribute("data-order");
+
+                window.location = `{{ url_for("account") }}?sort_by=${sort_by}&order=${order}`;
+            });
+
+            header.style.cursor = "pointer";
+        });
+    });
+</script>
+
+<script>
+    function updateTable(index) {
+        // Get all rows in the table
+        let tableRows = document.querySelectorAll("tbody tr");
+
+        // Remove the selected row from the table
+        tableRows[index - 1].remove();
+
+        // Update the table counter for all remaining rows
+        for (let i = index - 1; i < tableRows.length; i++) {
+            tableRows[i].querySelector("td").innerText = i + 1;
+        }
+    }
+</script>
+
+<script>
+    $(function () {
+        // Get a reference to the modal and image elements
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        // Update the image source and alt text when the modal is opened
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const imageUrl = button.data("image-url");
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+        });
+    });
+
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+</script>
+<!-- {% if recipes.pages > 1 %}
+<div class="container" style="border-radius: 0">
+    <div class="row row-cols-1  mt-3 " style="border-radius: 0">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li
+                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page-1) }}" {% if
+                        current_page==1 %}aria-disabled="true" {% endif
+                        %}>Previous</a>
+                </li>
+            {% for i in range(1, recipes.pages+1) %}
+                <li
+                    class="page-item {% if current_page == i %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=i) }}">{{
+                        i }}</a>
+                </li>
+                {% endfor %}
+                <li
+                    class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page+1) }}" {% if
+                        current_page==total_pages %}aria-disabled="true" {%
+                        endif %}>Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+{% endif %} -->
+
+
+
+{% endblock %}

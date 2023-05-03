@@ -5,8 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
-from app.models import User, Recipe, favorites, db, store_recipes
+from app.models import User, Recipe, favorites, db, store_recipes, delete_null_title_recipes
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
 import math
 import requests, random
 import json
@@ -36,7 +37,7 @@ def index():
         recipes = session.get('random_recipes', [])
     else:
         recipes = get_random_recipes()
-        user_id = current_user.get_id()  # Get the current user's ID
+        user_id = int(current_user.get_id())  # Get the current user's ID
         store_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
         session['random_recipes'] = recipes
 
@@ -96,7 +97,7 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 36  # Set the desired number of results per page
+    results_per_page = 35  # Set the desired number of results per page
     url = f'https://api.spoonacular.com/recipes/findByIngredients?number=100&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm(default_search_term=search_term) 
@@ -104,7 +105,15 @@ def results(search_term, page=1):
     if response.status_code == 200:
         all_results_data = response.json()
         offset = (page - 1) * results_per_page  # Calculate the offset based on the current page
-        results_data = all_results_data[offset:offset+results_per_page]
+        results_data = []
+        for result in all_results_data[offset:offset+results_per_page]:
+            recipe_id = result['id']
+            recipe_title = result['title']
+            recipe_image = result['image']
+            recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
+            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link}
+            results_data.append(recipe)
+
         total_results = len(all_results_data)  # Get the total number of results
         total_pages = math.ceil(total_results / results_per_page)
         return render_template('results.html', form=form, results=results_data, total_pages=total_pages, current_page=page, search_term=search_term)  # Return the results.html template
@@ -127,20 +136,31 @@ def toggle_favorite():
     if current_user in recipe.favorited_users:
         # Remove the recipe from the user's favorites
         recipe.favorited_users.remove(current_user)
-        flash(f'{recipe.title} removed from favorites.', 'danger')
+        flash(f'{recipe.title} {recipe.id} removed from favorites.', 'danger')
     else:
         # Add the recipe to the user's favorites and set the date_favorited attribute
         recipe.favorited_users.append(current_user)
         recipe.date_favorited = datetime.utcnow()
-        flash(f'{recipe.title} added to favorites.', 'success')
+        flash(f'{recipe.title} {recipe.id} added to favorites.', 'success')
 
     db.session.commit()
 
-    referrer = request.referrer
-    if 'results' in referrer:
-        return redirect(referrer)
-    else:
-        return redirect(url_for('index', _method='POST', _external=True))
+    # Get the previous page URL from the request referrer
+    prev_page = request.referrer
+    if prev_page:
+        # Check if the previous page URL contains 'favorites' or 'results'
+        if 'favorites' in prev_page:
+            return redirect(url_for('account', _method='POST', _external=True))
+        elif 'results' in prev_page:
+            # Extract the search_term and page from the previous page URL
+            parsed_url = urlparse(prev_page)
+            search_term = parse_qs(parsed_url.query).get('search_term', [''])[0]
+            page = parse_qs(parsed_url.query).get('page', [1])[0]
+            return redirect(url_for('account', search_term=search_term, page=page, _external=True))
+    # If the previous page URL is not available, redirect to the index page
+    return redirect(url_for('account', _method='POST', _external=True))
+
+
 
 
 @app.route('/favorite', methods=['POST'])
@@ -166,15 +186,15 @@ def favorite():
 
 
 
-@app.route('/add_recipe', methods=['GET', 'POST'])
-@login_required
-def add_recipe():
-    form = AddRecipeForm()
-    if form.validate_on_submit():
-        recipe = Recipe(title=form.title.data, link=form.link.data, image=form.image.data, user_id=current_user.id)
-        flash('Recipe added successfully!', 'success')
-        return redirect(url_for('index'))
-    return render_template('add_recipe.html', title='Add Recipe', form=form)
+# @app.route('/add_recipe', methods=['GET', 'POST'])
+# @login_required
+# def add_recipe():
+#     form = AddRecipeForm()
+#     if form.validate_on_submit():
+#         recipe = Recipe(title=form.title.data, link=form.link.data, image=form.image.data, user_id=current_user.id)
+#         flash('Recipe added successfully!', 'success')
+#         return redirect(url_for('index'))
+#     return render_template('add_recipe.html', title='Add Recipe', form=form)
 
 
 @app.route('/account', methods=['GET', 'POST'])
@@ -182,36 +202,48 @@ def add_recipe():
 def account():
     form = SearchForm()
     username = current_user.username
+    page = request.args.get('page', 1, type=int)
 
     if form.validate_on_submit():
         search_term = form.search_term.data
-        recipes = current_user.favorites.filter((Recipe.id.ilike(f"%{search_term}%")) | (Recipe.title.ilike(f"%{search_term}%")) | (Recipe.date_created.ilike(f"%{search_term}%"))).order_by(Recipe.date_created.asc()).all()
-    else: #remove null value or non-title recipes from view
-        recipes = current_user.latest_added_recipes.filter(Recipe.title != None).order_by(Recipe.date_created.desc()).all()
+        recipes = Recipe.query.filter_by(user_id=current_user.id).filter(
+            (Recipe.id.ilike(f"%{search_term}%")) |
+            (Recipe.title.ilike(f"%{search_term}%")) |
+            (Recipe.date_created.ilike(f"%{search_term}%"))
+        ).order_by(Recipe.date_created.asc()).all()
+    else:
+        recipes = Recipe.query.filter_by(user_id=current_user.id).filter(
+            Recipe.title != None
+        ).order_by(Recipe.date_created.desc()).all()
 
     if request.method == 'POST':
         recipe_id = request.form.get('recipe_id')
-        recipe_title = request.form.get('recipe_title', '')
+        recipe_title = request.form.get('recipe_title', 'None')
         recipe_image = request.form.get('recipe_image')
-        recipe = Recipe.query.get(recipe_id)
+        recipe_obj = Recipe.query.get(recipe_id)
+        recipe = None
 
-        if not recipe:
-            recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image, user_id=current_user.id)
-            db.session.add(recipe)
-            db.session.commit()
+        if recipe_obj is not None:
+            recipe_title = recipe_obj.title
+            recipe = Recipe.query.get(recipe_id)
 
-        if current_user in recipe.favorited_by.all():
-            # Remove the recipe from the user's favorites
-            current_user.favorites.remove(recipe)
-            db.session.commit()
-            flash(f'{recipe.title} removed from favorites.', 'danger')
-        else:
-            # Add the recipe to the user's favorites
-            current_user.favorites.append(recipe)
-            db.session.commit()
-            flash(f'{recipe.title} added to favorites.', 'success')
+        if recipe is not None:
+            if current_user in recipe.favorited_by:
+                # Remove the recipe from the user's favorites
+                current_user.favorites.remove(recipe)
+                db.session.commit()
+                flash(f'{recipe.title} removed from favorites.', 'danger')
+            else:
+                # Add the recipe to the user's favorites
+                current_user.favorites.append(recipe)
+                db.session.commit()
+                flash(f'{recipe.title} added to favorites.', 'success')
+            
+            # Filter out recipes with missing data
+   
 
     return render_template('account.html', recipes=recipes, form=form, username=username)
+
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -272,16 +304,18 @@ def logout():
     flash("You have logged out", "info")
     return redirect(url_for('index'))
 
-
+#****DELETE****DELETE***DELETE*****
 # Delete a recipe from the database
 @app.route('/delete/<recipe_id>')
 @login_required
 def delete_recipe(recipe_id):
+    # Null deletions
+    delete_null_title_recipes()
     recipe_to_delete = Recipe.query.get_or_404(recipe_id)
     if recipe_to_delete.user != current_user:
         flash("You do not have permission to delete this post", "danger")
-        return redirect(url_for('account'))
-
+        return redirect(url_for('login'))
+    # Delete the recipe
     db.session.delete(recipe_to_delete)
     db.session.commit()
     flash(f"{recipe_to_delete.title} has been deleted", "info")
