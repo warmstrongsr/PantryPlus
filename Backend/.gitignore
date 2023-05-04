@@ -3,3 +3,5 @@ venv
 app.db
 .env
 apikey.py
+admin
+Backend/app/templates/admin

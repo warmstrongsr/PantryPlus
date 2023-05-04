@@ -8,3 +8,16 @@
         {% endfor %}
     {% endif %}
 {% endwith %}         
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const alerts = document.querySelectorAll('.alert-dismissible');
+        alerts.forEach((alert) => {
+            setTimeout(() => {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 3000);
+        });
+    });
+</script>
