@@ -668,3 +668,14 @@ account
 
 
 {% endblock %}
+
+
+<div class="navbar-nav">
+                <a class="nav-link" href="/home">Home</a>
+                
+                <a class="nav-link" href="/account">Your Menu</a>
+                <a class="nav-link" href="/index">Roulette!</a>
+                <a class="nav-link" href="/fullmenu">Database Search</a>
+                <a class="nav-link" href="/logout">Log Out</a>
+                
+            </div>

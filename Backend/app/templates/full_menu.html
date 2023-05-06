@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} Full Menu {% endblock %}
+{% block title %}Db Search{% endblock %}
 
 {% block header %}
 {% if current_user.is_authenticated %}
@@ -127,7 +127,8 @@
         <div class="modal-content">
             <div class="modal-header">
             <div class="col text-center text-primary-emphasis">
-                <h4 class="modal-title" id="modal-recipe-title"></h4>
+                <h5><a href="#" class="modal-title-link" id="modal-recipe-title" target="_blank"
+                        rel="noopener noreferrer"></a></h5>
             </div>
                 <button type="button" class="close" data-dismiss="modal"
                     aria-label="Close">
@@ -148,13 +149,23 @@
         const image = modal.find("img");
 
         // Update the image source and alt text when the modal is opened
-        modal.on("show.bs.modal", function (event) {
+         modal.on("show.bs.modal", function (event) {
             const button = $(event.relatedTarget);
             const recipeId = button.data("recipe-id");
+            const recipeTitle = button.data("recipe-title");
             const imageUrl = button.data("image-url");
+            const recipeSourceUrl = button.data("recipe-source-url");
+
+            $("#recipe-link").attr("href", recipeSourceUrl);
 
             image.attr("src", imageUrl);
             image.attr("alt", "Recipe Image");
+
+               // Set the recipe title and id in the modal
+
+            const titleLink = $("#modal-recipe-title");
+            $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
+            titleLink.attr("href", recipeSourceUrl);
         });
     });
 
@@ -164,10 +175,16 @@
 
         $(function () {
             $('#recipe-modal').on('hidden.bs.modal', function () {
-                $('.btn-pressed').removeClass('btn-pressed');
+                const button = $('.btn-pressed');
+                button.removeClass('btn-pressed');
+
+                // Remove the highlight effect after 3 seconds
+                setTimeout(function (btn) {
+                    btn.removeClass('btn-pressed');
+                }, 7000, button);
             });
         });
-</script>
+    </script>
 
 {% endblock %}
 
@@ -219,40 +236,5 @@
         }
     }
 </script>
-
-<script>
-    $(function () {
-            // Get a reference to the modal and image elements
-            const modal = $("#recipe-modal");
-            const image = modal.find("img");
-
-            // Update the image source and alt text when the modal is opened
-            modal.on("show.bs.modal", function (event) {
-                const button = $(event.relatedTarget);
-                const recipeId = button.data("recipe-id");
-                const imageUrl = button.data("image-url");
-
-                image.attr("src", imageUrl);
-                image.attr("alt", "Recipe Image");
-            });
-        });
-
-        function highlightButton(button) {
-            button.classList.add("btn-pressed");
-        }
-
-        $(function () {
-            $('#recipe-modal').on('hidden.bs.modal', function () {
-                const button = $('.btn-pressed');
-                button.removeClass('btn-pressed');
-
-                // Remove the highlight effect after 3 seconds
-                setTimeout(function (btn) {
-                    btn.removeClass('btn-pressed');
-                }, 7000, button);
-            });
-        });
-</script>
-
 
 {% endblock %}

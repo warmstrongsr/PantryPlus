@@ -2,6 +2,7 @@ from app import app, db, forms, models
 from app.dummy_recipes import dummy_recipes
 from flask import Flask, render_template, url_for, flash, redirect, request, abort, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc, asc, text, func, literal
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
@@ -12,9 +13,14 @@ import math
 import requests, random
 import json
 
+
 spoonacular_api_key = API_KEY
 
 
+def get_random_recipes():
+    num_recipes = 100 # number of random recipes to retrieve
+    random_recipes = Recipe.query.order_by(func.random()).limit(num_recipes).all()
+    return random_recipes
 
 
 def get_random_recipes():
@@ -25,8 +31,119 @@ def get_random_recipes():
     random_recipes = data['recipes']
     return random_recipes
 
+def get_recipe_summary(recipe_id):
+    api_key = spoonacular_api_key
+    url = f"https://api.spoonacular.com/recipes/{recipe_id}/summary?apiKey={api_key}"
+    response = requests.get(url)
+    data = json.loads(response.text)
+    recipe_summary = data['summary']
+    return recipe_summary
+
+
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
+def home():
+    form = SearchForm()
+    sort_by = request.args.get('sort_by', 'title')
+    order = request.args.get('order', 'asc')
+    page = request.args.get('page', 1, type=int)
+    per_page = 150
+    username = None
+    
+    # initialize the variable outside of any conditional branches
+    recipe_query = Recipe.query
+    
+    if current_user.is_authenticated:
+        subquery = db.session.query(
+        Recipe.id.label('recipe_id'),
+        (Recipe.favorited_by.contains(current_user).label('is_favorited')),
+        literal(current_user.id).label('user_id')
+    ).subquery()
+        username = current_user.username
+
+        recipe_query = recipe_query.join(subquery, Recipe.id == subquery.c.recipe_id).filter_by(user_id=current_user.id).order_by(
+            subquery.c.is_favorited.desc(),
+            text(sort_by + ' ' + order))
+    else:
+        recipe_query = Recipe.query
+        username = "None"
+
+        
+    # update the 'recipes' variable with the new query
+    recipes = recipe_query.paginate(page=page, per_page= 5, error_out=False).items
+    
+    # Filter out recipes with missing data
+    valid_recipes = [recipe for recipe in recipes if isinstance(recipe, Recipe) and 'title' in recipe.to_dict() and 'sourceUrl' in recipe.to_dict()]
+    total_pages = int(math.ceil(len(valid_recipes) / per_page))
+   
+    # Apply the search filter if a search query is submitted
+    if form.validate_on_submit():
+        search_term = form.search_term.data
+        
+        if current_user.is_authenticated:
+            recipe_query = Recipe.query.filter_by(user_id=current_user.id).filter(
+                (Recipe.id.ilike(f"%{search_term}%")) |
+                (Recipe.title.ilike(f"%{search_term}%"))
+            ).order_by(
+                db.case((Recipe.favorited_by.contains(current_user), 0), else_=1),
+                text(sort_by + ' ' + order))
+        else:
+            recipe_query = Recipe.query.filter(
+                (Recipe.id.ilike(f"%{search_term}%")) |
+                (Recipe.title.ilike(f"%{search_term}%"))
+            ).order_by(Recipe.title.desc())
+        
+        recipes = recipe_query.paginate(page=page, per_page= 5, error_out=False).items
+    
+    if request.method == 'POST':
+        recipe_id = request.form.get('recipe_id')
+        recipe_title = request.form.get('recipe_title', 'None')
+        recipe_image = request.form.get('recipe_image')
+        recipe_obj = Recipe.query.get(recipe_id)
+        recipe = None
+
+        if recipe_obj is not None:
+            recipe_title = recipe_obj.title
+            recipe = Recipe.query.get(recipe_id)
+            
+        if recipe is not None:
+            if current_user.is_authenticated and current_user in recipe.favorited_by:
+                # Remove the recipe from the user's favorites
+                current_user.favorites.remove(recipe)
+                db.session.commit()
+                flash(f'{recipe.title} removed from favorites.', 'danger')
+            elif current_user.is_authenticated:
+                # Add the recipe to the user's favorites
+                current_user.favorites.append(recipe)
+                db.session.commit()
+                flash(f'{recipe.title} added to favorites.', 'success')
+            else:
+                flash("You need to login to add recipes to your favorites.", 'danger')
+
+        recipes_per_page = 25
+        total_pages = int(math.ceil(len(valid_recipes) / recipes_per_page))
+
+        # Get current page from query parameter or default to 1
+        current_page = int(request.args.get('page', 1))
+
+        # Add dummy recipes to the valid recipes list if it's the last page
+        if current_page == total_pages:
+            valid_recipes += dummy_recipes
+
+        # Slice the recipes list to show only the recipes for the current page
+        start_index = (current_page - 1) * recipes_per_page
+        end_index = start_index + recipes_per_page
+        displayed_recipes = valid_recipes[start_index:end_index]
+
+        search_form = forms.SearchForm()  # Create an instance of the search form
+            
+
+    return render_template('home.html', form=form, recipes=recipes, sort_by=sort_by, order=order, page=page,per_page=per_page, total_pages=total_pages, username=username)
+        
+    
+    
+    
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -62,7 +179,8 @@ def index():
 
     search_form = forms.SearchForm()  # Create an instance of the search form
 
-    return render_template('index.html', title='Home', recipes=displayed_recipes, form=search_form, total_pages=total_pages, current_page=current_page)
+    return render_template('index.html', title='Home', recipes=displayed_recipes, form=search_form, total_pages=total_pages, current_page=current_page)    
+
 
 @app.route('/fullmenu', methods=['GET', 'POST'])
 @login_required
@@ -111,7 +229,8 @@ def results(search_term, page=1):
             recipe_title = result['title']
             recipe_image = result['image']
             recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
-            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link}
+            recipe_summary = get_recipe_summary(recipe_id)
+            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link, 'summary': recipe_summary}
             results_data.append(recipe)
 
         total_results = len(all_results_data)  # Get the total number of results
@@ -202,7 +321,10 @@ def favorite():
 def account():
     form = SearchForm()
     username = current_user.username
-    page = request.args.get('page', 1, type=int)
+    current_page = request.args.get('page', 1, type=int)
+    per_page = 25  #page calculations and parameters
+    total_recipes = Recipe.query.filter_by(user_id=current_user.id).count()
+    total_pages = int(math.ceil(total_recipes / per_page)) 
 
     if form.validate_on_submit():
         search_term = form.search_term.data
@@ -242,7 +364,7 @@ def account():
             # Filter out recipes with missing data
    
 
-    return render_template('account.html', recipes=recipes, form=form, username=username)
+    return render_template('account.html',current_page=current_page, recipes=recipes, form=form, username=username, total_pages=total_pages)
 
 
 

@@ -17,6 +17,13 @@ body{
     align-items: center;
     margin-bottom: 0;
 }
+.modal-title-link {
+    font-size: inherit;
+}
+.recipe-summary.scrollable {
+  max-height: 200px; /* adjust as needed */
+  overflow-y: auto;
+}
 /* .btn {
     margin:auto;
     display:block;
