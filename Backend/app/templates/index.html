@@ -1,54 +1,75 @@
 {% extends 'base.html' %}
 
-{% block title %} Home {% endblock %}
+{% block title %} Roulette! {% endblock %}
 
 {% block header %}
-<h1>Pantry Plus2</h1>
+<h3>Recipe Roulette</h3>
 {% if current_user.is_authenticated %}
 <h6>Nice to see you again, {{ current_user.username.title() }}!</h6>
-<div class="container" style="border-radius: 2;">
+<div class="container" style="border-radius: 2px">
     <div class="col-col-3 -lg-3 ">
-        <form action="{{ url_for('search') }}" method="GET">
+        <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term.label }} {{ form.search_term() }}
-            {{ form.submit() }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
+            <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
 </div>
-
 {% else %}
-<h6>Please Sign Up or Log In to Create or Update Address Books</h6>
+<h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 {% if current_user.is_authenticated %}
-<div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+{% if recipes %}
+<div class="container" style="border-radius: 2px">
+    <div class="row row-cols-1 row-cols-md-5 mt-4">
         {% for recipe in recipes %}
         {% if recipe %}
         <div class="col mb-0 mt-4">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
-                <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
-                    <div class="d-flex gap-2">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View
-                            Recipe</a>
+                <div class="card-body text-center">
+                    <div class="card-content">
+                        <h6 class="card-title">{{ recipe.title }}</h6>
+                    </div>
+
+                    <div class="button-row">
+                    <button class="btn btn-outline-warning btn-sm show-warning-modal"
+                        data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                        target="_blank" rel="noopener noreferrer"
+                        class="btn btn-outline-warning btn-sm">Recipe</button>
+                        <button class="btn btn-outline-primary btn-sm btn-block"
+                            data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
+                            data-recipe-instructions="{{ recipe.instructions|truncate(425, True)|striptags|safe }}"
+                            data-recipe-source-url="{{ recipe.sourceUrl }}"
+                            data-recipe-title="{{ recipe.title }}"
+                            onclick="highlightButton(this);">
+                            Peek
+                        </button>
+
+
                         {% if current_user.is_authenticated %}
-                        <form method="post" action="{{ url_for('favorite') }}"
-                            class="d-flex">
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline" id="favorite-form">
                             {{ form.csrf_token }}
                             <input type="hidden" name="recipe_id"
                                 value="{{ recipe.id }}">
+                            <input type="hidden" name="recipe_title"
+                                value="{{ recipe.title }}">
+                            <input type="hidden" name="recipe_image"
+                                value="{{ recipe.image }}">
                             {% if recipe.is_favorite %}
                             <input type="submit" value="Unfavorite"
-                                class="btn btn-outline-danger btn-group-sm">
+                                class="btn btn-outline-danger btn-block">
                             {% else %}
                             <input type="submit" value="Favorite"
-                                class="btn btn-outline-success btn-group-sm">
+                                class="btn btn-outline-success btn-sm btn-block">
                             {% endif %}
                         </form>
                         {% endif %}
@@ -60,30 +81,182 @@
         {% endfor %}
     </div>
 </div>
-{% endif %}
 
-{% if not current_user.is_authenticated %}
-<div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
-        {% for recipe in recipes %}
-        {% if recipe %}
-        <div class="col mb-0 mt-4">
-            <div class="card h-100">
-                <img src="{{ recipe.image }}" class="card-img-top"
-                    alt="{{ recipe.title }}">
-                <div class="card-body">
-                    <h6 class="card-title">{{ recipe.title }} <small> ID: {{recipe.id}}</small></h6>
-                    <div class="d-flex gap-2">
-                        <a href="{{ recipe.sourceUrl }}" target="_blank"
-                            class="btn btn-outline-primary btn-group-sm">View
-                            Recipe</a>
+{% endif %}
+<!-- Modal -->
+<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col text-center text-primary-emphasis">
+                    <h5><a href="#" class="modal-title-link" id="modal-recipe-title"
+                            target="_blank" rel="noopener noreferrer"></a></h5>
+                </div>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="" class="img-fluid" alt="Recipe Image">
+                    </div>
+                    <!-- Inside the modal -->
+                    <div class="col-md-6">
+                        <h6 class="modal-title">Recipe preview:</h6>
+                        <p id="recipe-instructions"></p>
                     </div>
                 </div>
+                {% for recipe in recipes %}
+                <h5 class="modal-title" id="modal-recipe-title"></h5>
+
+                {% else %}
+                <h5 class="modal-title">No recipes found</h5>
+                {% endfor %}
             </div>
         </div>
-        {% endif %}
-        {% endfor %}
     </div>
 </div>
+
 {% endif %}
+
+<!-- Warning Modal -->
+<div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Warning</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You will be redirected to an external website,
+                    <a href="#" class="modal-title-link" id="modal-recipe-title" target="_blank"
+                        rel="noopener noreferrer">click here</a>. Click
+                    outside
+                    the modal or on the "X" button to stay on this page.
+                </p>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary"
+                    data-dismiss="modal">Back</button>
+                <button type="button" class="btn btn-primary"
+                    id="continue-external">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% if total_pages > 1 %}
+<div class="container" style="border-radius: 0">
+    <div class="row row-cols-1  mt-3 " style="border-radius: 0">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li
+                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page-1) }}" {% if
+                        current_page==1 %}aria-disabled="true" {% endif
+                        %}>Previous</a>
+                </li>
+                {% for i in range(1, total_pages+1) %}
+                <li
+                    class="page-item {% if current_page == i %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=i) }}">{{
+                        i }}</a>
+                </li>
+                {% endfor %}
+                <li
+                    class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('index', page=current_page+1) }}" {% if
+                        current_page==total_pages %}aria-disabled="true" {%
+                        endif %}>Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+{% endif %}
+
+<script>
+
+
+    $(function () {
+        const modal = $("#recipe-modal");
+        const image = modal.find("img");
+
+        modal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const recipeId = button.data("recipe-id");
+            const recipeTitle = button.data("recipe-title");
+            const imageUrl = button.data("image-url");
+            const recipeInstructions = button.data("recipe-instructions");
+            const recipeSourceUrl = button.data("recipe-source-url");
+            const recipeSummary = button.data("recipe-summary");
+
+            $("#recipe-instructions").text(recipeInstructions);
+
+            image.attr("src", imageUrl);
+            image.attr("alt", "Recipe Image");
+
+            // Set the recipe title and id in the modal 
+
+            const titleLink = $("#modal-recipe-title");
+            $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
+            $("#recipe-instructions").text(recipeInstructions);
+            $("#recipe-summary").text(recipeSummary);
+            $("#recipe-link").attr("href", recipeSourceUrl);
+            titleLink.attr("href", recipeSourceUrl);
+        });
+    });
+
+
+    // Button Highlight function
+    $(function () {
+        $(".highlight-button").on("click", function () {
+            $(this).addClass("btn-pressed");
+        });
+    });
+
+    // Remove the highlight effect after 7 seconds
+    $(function () {
+        $("#recipe-modal").on("hidden.bs.modal", function () {
+            const button = $(".btn-pressed");
+            button.removeClass("btn-pressed");
+
+            setTimeout(function () {
+                button.removeClass("btn-pressed");
+            }, 7000);
+        });
+    });
+
+    // Show warning modal when "Recipe" button is clicked
+    $(".show-warning-modal").on("click", function (event) {
+        event.preventDefault();
+        const recipeUrl = $(this).data("recipe-url");
+        $("#continue-external").data("recipe-url", recipeUrl);
+        $("#warning-modal").modal("show");
+    });
+
+    // Redirect the user when the "Continue" button is clicked in the warning modal
+    $("#continue-external").on("click", function () {
+        const recipeUrl = $(this).data("recipe-url");
+        window.open(recipeUrl, "_blank", "noopener noreferrer");
+        $("#warning-modal").modal("hide");
+    });
+    // Scrollable modal event
+    const summary = document.getElementById("recipe-instructions");
+
+    summary.addEventListener("click", function () {
+        summary.classList.toggle("scrollable");
+    });
+
+</script>
+
 {% endblock %}

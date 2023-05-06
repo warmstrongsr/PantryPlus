@@ -73,12 +73,11 @@ class Recipe(db.Model):
             is_favorite = False
         # Include the username of each user who favorited the recipe
         favorited_by = [
-            user.username for user in self.favorited_by]
+            user.username for user in self.favorited_by.all()]
 
         formatted_date = self.date_created.strftime('%B %d, %Y %I:%M %p')
 
-        # json.loads for retrieving the recipe
-        ingredients = json.loads(self.ingredients) if self.ingredients else []
+        ingredients = [ingredient.text for ingredient in self.ingredients]
 
         return {
             "id": self.id,
@@ -88,8 +87,8 @@ class Recipe(db.Model):
             "author": User.query.get(self.user_id).to_dict(),
             "is_favorite": is_favorite,
             "image": self.image,
-            "favorited_by": self.favorited_by,
-            "ingredients": self.ingredients,
+            "favorited_by": favorited_by,
+            "ingredients": ingredients,
             "instructions": self.instructions,
             "users": self.users
         }
@@ -166,22 +165,19 @@ def store_recipes(recipes, user_id):
         existing_recipe = Recipe.query.filter_by(id=recipe['id']).first()
 
         if not existing_recipe:
-            id=recipe.get('id', ''),
-            title=recipe.get('title', ''),
-            link=recipe.get('sourceUrl', ''),
-            
-            if not id or not title or not link:
-                continue
-                                # json.dump for storing
             new_recipe = Recipe(
-                ingredients=json.dumps(recipe.get('ingredients', [])),
+                id=recipe.get('id', ''),
+                title=recipe.get('title', ''),
+                link=recipe.get('sourceUrl', ''),
                 image=recipe.get('image', ''),
                 date_created=datetime.now(),
-                instructions=recipe.get('instructions', ''),
                 user_id=user_id,
             )
             db.session.add(new_recipe)
             db.session.commit()
+
+
+
 
 class RecipeEncoder(json.JSONEncoder):
     def default(self, obj):
