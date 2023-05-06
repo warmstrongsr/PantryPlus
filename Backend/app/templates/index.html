@@ -10,7 +10,8 @@
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search
+            by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
@@ -37,10 +38,14 @@
                     </div>
 
                     <div class="button-row">
-                    <button class="btn btn-outline-warning btn-sm show-warning-modal"
-                        data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                        target="_blank" rel="noopener noreferrer"
-                        class="btn btn-outline-warning btn-sm">Recipe</button>
+                        <button <button
+                            class="btn btn-outline-warning btn-sm show-warning-modal"
+                            data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            data-recipe-title="{{ recipe.title }}"
+                            target="_blank" rel="noopener noreferrer"
+                            class="btn btn-outline-warning btn-sm">Recipe</button>
+
+
                         <button class="btn btn-outline-primary btn-sm btn-block"
                             data-toggle="modal" data-target="#recipe-modal"
                             data-recipe-id="{{ recipe.id }}"
@@ -89,8 +94,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="col text-center text-primary-emphasis">
-                    <h5><a href="#" class="modal-title-link" id="modal-recipe-title"
-                            target="_blank" rel="noopener noreferrer"></a></h5>
+                    <h5><a href="#" class="modal-title-link"
+                            id="modal-recipe-title" target="_blank"
+                            rel="noopener noreferrer"></a></h5>
                 </div>
                 <button type="button" class="close" data-dismiss="modal"
                     aria-label="Close">
@@ -134,15 +140,15 @@
             </div>
             <div class="modal-body">
                 <p>You will be redirected to an external website,
-                    <a href="#" class="modal-title-link" id="modal-recipe-title" target="_blank"
-                        rel="noopener noreferrer">click here</a>. Click
-                    outside
-                    the modal or on the "X" button to stay on this page.
+                    <a href="#" class="modal-title-link" id="warning-recipe-title"
+                        target="_blank" rel="noopener noreferrer"></a>.
+                    Click outside the modal or on the "X" button to stay on this
+                    page.
                 </p>
             </div>
             <div class="modal-footer">
 
-                <button type="button" class="btn btn-secondary"
+                <button type="button" class="btn btn-secondary close close"
                     data-dismiss="modal">Back</button>
                 <button type="button" class="btn btn-primary"
                     id="continue-external">Continue</button>
@@ -240,8 +246,16 @@
     $(".show-warning-modal").on("click", function (event) {
         event.preventDefault();
         const recipeUrl = $(this).data("recipe-url");
+        const recipeTitle = $(this).data("recipe-title");
         $("#continue-external").data("recipe-url", recipeUrl);
+        $("#warning-recipe-title").text(recipeTitle);
         $("#warning-modal").modal("show");
+    });
+
+
+    // Hide warning modal when "Back" button or "X" button is clicked
+    $("#back-button, .close").on("click", function () {
+        $("#warning-modal").modal("hide");
     });
 
     // Redirect the user when the "Continue" button is clicked in the warning modal

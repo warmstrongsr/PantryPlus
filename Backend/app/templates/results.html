@@ -148,7 +148,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
+                <button type="button" class="btn btn-secondary close"
                     data-bs-dismiss="modal">Back</button>
                 <button type="button" class="btn btn-primary"
                     id="continue-external">Continue</button>
@@ -256,9 +256,9 @@
     // Scrollable modal event
     const summary = document.getElementById("recipe-instructions");
 
-        summary.addEventListener("click", function () {
-            summary.classList.toggle("scrollable");
-        });
+    summary.addEventListener("click", function () {
+        summary.classList.toggle("scrollable");
+    });
 
 </script>
 

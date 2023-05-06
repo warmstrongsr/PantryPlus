@@ -44,6 +44,7 @@ class Recipe(db.Model):
     image = db.Column(db.String(500))
     instructions = db.Column(db.Text)  # Add instructions column
     ingredients = db.Column(db.Text)  # Add instructions column
+    summary = db.Column(db.Text) # Add summary column
     date_created = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey(
@@ -91,15 +92,17 @@ class Recipe(db.Model):
             "favorited_by": self.favorited_by,
             "ingredients": self.ingredients,
             "instructions": self.instructions,
+            "summary": self.summary,
             "users": self.users
         }
 
     def update(self, data):
         for field in data:
-            if field not in {'title', 'content', 'user_id', 'instructions'}:
+            if field not in {'title', 'content', 'user_id', 'instructions', 'ingredients', 'summary'}:
                 continue
             setattr(self, field, data[field])
         db.session.commit()
+
 
     def delete(self):
         db.session.delete(self)
@@ -178,6 +181,7 @@ def store_recipes(recipes, user_id):
                 image=recipe.get('image', ''),
                 date_created=datetime.now(),
                 instructions=recipe.get('instructions', ''),
+                summary=recipe.get('summary', ''),
                 user_id=user_id,
             )
             db.session.add(new_recipe)
@@ -188,3 +192,4 @@ class RecipeEncoder(json.JSONEncoder):
         if isinstance(obj, Recipe):
             return obj.to_dict()
         return json.JSONEncoder.default(self, obj)
+

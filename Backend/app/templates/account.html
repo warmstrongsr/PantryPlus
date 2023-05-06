@@ -10,7 +10,8 @@
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search
+            by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
@@ -139,7 +140,8 @@
                     the modal or on the "X" button to stay on this page.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
+                <button type="button"
+                    class="btn btn-secondary close"
                     data-dismiss="modal">Back</button>
                 <button type="button" class="btn btn-primary"
                     id="continue-external">Continue</button>
