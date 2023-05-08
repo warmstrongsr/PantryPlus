@@ -27,7 +27,7 @@
                 <h6 class="mt-2">Search Results for "{{ search_term }}"</h6>
             </div>
 
-            {% if request.path == '/account' or request.path == '/fullmenu' %}
+            {% if request.path == '/account' or request.path == '/fullmenu' or request.path == '/home' %}
             {% if current_user.is_authenticated %}
             <div class="navbar-nav ms-auto">
                 <div class="d-flex">

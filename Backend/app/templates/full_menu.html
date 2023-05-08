@@ -90,11 +90,11 @@
                         <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
                             class="btn btn-danger">Delete</a>
                         {% endif %}
+                        
                         {% if current_user.is_authenticated %}
                         <form method="post"
                             action="{{ url_for('toggle_favorite') }}"
                             class="d-inline" id="favorite-form">
-
                             {{ form.csrf_token }}
                             <input type="hidden" name="recipe_id"
                                 value="{{ recipe.id }}">
