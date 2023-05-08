@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} Account {% endblock %}
+{% block title %} Home {% endblock %}
 
 {% block header %}
 {% if current_user.is_authenticated %}
@@ -32,28 +32,27 @@
     <div class="row row-cols-1  my-3 " style="border-radius: 0">
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
-                <li
-                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
                     <a class="page-link"
                         href="{{ url_for('home', page=page-1, sort_by=sort_by, order=order) }}">Previous</a>
                 </li>
                 {% set num_buttons = 5 %}
-                {% set start_page = current_page - num_buttons // 2 %}
-                {% set end_page = current_page + num_buttons // 2 %}
+                {% set start_page = page - num_buttons // 2 %}
+                {% set end_page = page + num_buttons // 2 %}
                 {% for i in range(start_page, end_page+1) %}
                 {% if i >= 1 and i <= total_pages %} <li
-                    class="page-item {% if current_page == i %}active{% endif %}">
+                    class="page-item {% if page == i %}active{% endif %}">
                     <a class="page-link" href="{{ url_for('home', page=i) }}">{{
                         i }}</a>
                     </li>
                     {% endif %}
                     {% endfor %}
                     <li
-                        class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                        class="page-item {% if page == total_pages %}disabled{% endif %}">
                         <a class="page-link"
-                            href="{{ url_for('home', page=current_page+1) }}" {%
-                            if current_page==total_pages %}aria-disabled="true"
-                            {% endif %}>Next</a>
+                            href="{{ url_for('home', page=page+1) }}" {% if
+                            page==total_pages %}aria-disabled="true" {% endif
+                            %}>Next</a>
                     </li>
             </ul>
         </nav>
@@ -74,7 +73,8 @@
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
                     <div class="card-content">
-                        <h6 class="card-title">{{ recipe.title }}</h6>
+                        <h6><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            target="_blank">{{ recipe.title}}</a></h6>
                     </div>
 
                     <div class="button-row">
@@ -183,7 +183,8 @@
                     the modal or on the "X" button to stay on this page.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="close btn btn-secondary"
+                <button type="button"
+                    class="close btn btn-secondary close"
                     data-dismiss="modal">Back</button>
                 <button type="button" class="btn btn-primary"
                     id="continue-external">Continue</button>

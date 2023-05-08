@@ -109,21 +109,21 @@
                         <img src="" class="img-fluid" alt="Recipe Image">
                     </div>
                     <!-- Inside the modal -->
-                    {% for recipe in recipes %}
                     <div class="col-md-6">
-                        <h5 class="modal-title">Recipe preview:</h5>
+                        <h6 class="modal-title">Recipe preview:</h6>
                         <p id="recipe-instructions"></p>
-                        <p id="recipe-summary"></p>
-                        {% else %}
-                        <h5 class="modal-title">No recipes found</h5>
-                        {% endfor %}
                     </div>
                 </div>
+                {% for recipe in recipes %}
+                <h5 class="modal-title" id="modal-recipe-title"></h5>
+
+                {% else %}
+                <h5 class="modal-title">No recipes found</h5>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
-
 
 <!-- Warning Modal -->
 <div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
@@ -139,16 +139,15 @@
             <div class="modal-body">
 
                 <p>You will be redirected to an external website,
-                    <a href="#" class="modal-title-link" id="modal-recipe-title"
-                        target="_blank" rel="noopener noreferrer">click
-                        here</a>. Click
+                    <a href="#" class="modal-title-link" id="warning-recipe-url" target="_blank"
+                        rel="noopener noreferrer"></a>. Click
                     outside
                     the modal or on the "X" button to stay on this page.
                 </p>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
+                <button type="button" class="btn btn-secondary close"
                     data-bs-dismiss="modal">Back</button>
                 <button type="button" class="btn btn-primary"
                     id="continue-external">Continue</button>
@@ -239,11 +238,13 @@
         });
     });
 
-    // Show warning modal when "Recipe" button is clicked
+ // Show warning modal when "Recipe" button is clicked
     $(".show-warning-modal").on("click", function (event) {
         event.preventDefault();
         const recipeUrl = $(this).data("recipe-url");
         $("#continue-external").data("recipe-url", recipeUrl);
+        $("#warning-recipe-url").attr("href", recipeUrl);
+        $("#warning-recipe-url").text(recipeUrl); // Add this line
         $("#warning-modal").modal("show");
     });
 
@@ -256,9 +257,9 @@
     // Scrollable modal event
     const summary = document.getElementById("recipe-instructions");
 
-        summary.addEventListener("click", function () {
-            summary.classList.toggle("scrollable");
-        });
+    summary.addEventListener("click", function () {
+        summary.classList.toggle("scrollable");
+    });
 
 </script>
 

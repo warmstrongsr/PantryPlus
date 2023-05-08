@@ -197,7 +197,7 @@ account.html 4/29 1934
                     action cannot be undone.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
+                    <button type="button" class="btn btn-secondary close"
                         data-bs-dismiss="modal">Close</button>
                     <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
                         class="btn btn-danger">Delete
@@ -213,9 +213,9 @@ account.html 4/29 1934
 
 FULL <MENU>
     {% extends 'base.html' %}
-    
+
     {% block title %} Full Menu {% endblock %}
-    
+
     {% block header %}
     {% if current_user.is_authenticated %}
     <h1>Full Menu</h1>
@@ -226,24 +226,25 @@ FULL <MENU>
     <h5>Please Sign Up or Log In to Create or Update Menus</h5>
     {% endif %}
     {% endblock %}
-    
+
     {% block content %}
-    
-    
+
+
     <!-- Add this div to display the selected recipe -->
     <div id="selected-recipe">
     </div>
-    
+
     <div class="row d-flex justify-content-center">
         <div class="col-10 col-lg-10 order-0 order-lg-1">
             <table
                 class="table  table-bordered table-striped bg-secondary-subtle mt-2">
                 <thead>
                     <tr class="text-center">
-    
+
                         <th>#</th> <!-- Add the counter column -->
                         <!-- <th class="text-left">Title</th> -->
-                        <th class="sortable" data-column="title" data-order="asc">
+                        <th class="sortable" data-column="title"
+                            data-order="asc">
                             Title</th>
                         <th>Recipe ID</th>
                         <th>Date Added</th>
@@ -281,11 +282,12 @@ FULL <MENU>
                             <form method="post"
                                 action="{{ url_for('toggle_favorite') }}"
                                 class="d-inline" id="favorite-form">
-    
+
                                 {{ form.csrf_token }}
                                 <input type="hidden" name="recipe_id"
                                     value="{{ recipe.id }}">
-                                {% if current_user in recipe.favorited_by.all() %}
+                                {% if current_user in recipe.favorited_by.all()
+                                %}
                                 <input type="submit" value="Unfavorite"
                                     class="btn btn-outline-danger"
                                     onclick="updateTable({{ loop.index }});">
@@ -297,7 +299,7 @@ FULL <MENU>
                                 <input type="submit" value="Delete"
                                     class="btn btn-outline-danger"
                                     onclick="updateTable({{ loop.index }});">
-    
+
                                 {% endif %}
                             </form>
                         </td>
@@ -308,9 +310,9 @@ FULL <MENU>
             </table>
         </div>
     </div>
-    
+
     {% endblock %}
-    
+
     {% block scripts %}
     <script>
         function displayRecipe(recipeId, recipeTitle, recipeUrl) {
@@ -327,7 +329,7 @@ FULL <MENU>
         `;
         }
     </script>
-    
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const tableHeaders = document.querySelectorAll("th.sortable");
@@ -344,7 +346,7 @@ FULL <MENU>
             });
         });
     </script>
-    
+
     <script>
         function updateTable(index) {
             // Get all rows in the table
@@ -359,7 +361,7 @@ FULL <MENU>
             }
         }
     </script>
-    
+
     {% endblock %}
 </MENU>
 

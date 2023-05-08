@@ -303,7 +303,7 @@ DummyDataStorage | "Homepage Recipe Items"
                             action cannot be undone.
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary"
+                            <button type="button" class="btn btn-secondary close"
                                 data-bs-dismiss="modal">Close</button>
                             <a href="{{ url_for('delete_recipe', recipe_id=recipe.id) }}"
                                 class="btn btn-danger">Delete Recipe</a>

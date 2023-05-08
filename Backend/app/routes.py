@@ -162,7 +162,7 @@ def index():
     valid_recipes = [recipe for recipe in recipes if recipe.get('title') and recipe.get('sourceUrl')]
 
     # Define total pages based on number of recipes and recipes per page
-    recipes_per_page = 25
+    recipes_per_page = 1
     total_pages = int(math.ceil(len(valid_recipes) / recipes_per_page))
 
     # Get current page from query parameter or default to 1
