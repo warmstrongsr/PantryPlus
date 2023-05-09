@@ -10,7 +10,8 @@
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search
+            by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
@@ -19,6 +20,12 @@
 <h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
 {% endif %}
 {% endblock %}
+<!-- <style>
+    .favorite-btn {
+        width: 100%;
+        /* Make button full width */
+    }
+</style> -->
 
 {% block content %}
 {% if current_user.is_authenticated %}
@@ -31,10 +38,10 @@
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
-                <div class="card-content">
-                    <h6><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                            target="_blank">{{ recipe.title}}</a></h6>
-                </div>
+                    <div class="card-content">
+                        <h6><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                                target="_blank">{{ recipe.title}}</a></h6>
+                    </div>
 
                     <div class="button-row">
                         <button
@@ -54,10 +61,12 @@
 
 
                         {% if current_user.is_authenticated %}
-                        <form method="post" action="{{ url_for('toggle_favorite') }}"
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
                             class="d-inline favorite-form">
                             {{ form.csrf_token }}
-                            <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}">
                             {% if current_user in recipe.favorited_by %}
                             <input type="submit" value="Unfavorite"
                                 class="btn btn-outline-danger favorite-btn btn-sm me-auto"
@@ -69,53 +78,56 @@
                             {% endif %}
                         </form>
                         {% endif %}
-                        </div>
-                        </div>
-                        </div>
-                        </div>
-                       
-                        {% endfor %}
-                        </div>
-                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
 {% endif %}
 {% endif %}
 
-<!-- Modal -->
-<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+<!-- Recipe list -->
+{% for recipe in recipes %}
+<div>
+    <h2>{{ recipe.title }}</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+        data-bs-target="#recipeModal"
+        onclick="showRecipe({{ recipe|tojson|safe }})">View Recipe</button>
+</div>
+{% endfor %}
+
+<!-- Recipe modal -->
+<div class="modal fade" id="recipeModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="col text-center text-primary-emphasis">
-                    <h5><a href="#" class="modal-title-link"
-                            id="modal-recipe-title" target="_blank"
-                            rel="noopener noreferrer"></a></h5>
-                </div>
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="modal-recipe-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <img src="" class="img-fluid" alt="Recipe Image">
+                        <img id="modal-recipe-image" class="img-fluid"
+                            alt="Recipe Image">
                     </div>
-                    <!-- Inside the modal -->
                     <div class="col-md-6">
                         <h6 class="modal-title">Recipe preview:</h6>
-                        <p id="recipe-summary"></p>
+                        <p id="modal-recipe-instructions"></p>
                     </div>
                 </div>
-                {% for recipe in recipes %}
-                <h5 class="modal-title" id="modal-recipe-title"></h5>
-
-                {% else %}
-                <h5 class="modal-title">No recipes found</h5>
-                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save
+                    changes</button>
             </div>
         </div>
     </div>
-</div>
 </div>
 </div>
 
@@ -193,12 +205,7 @@
 </nav>
 {% endif %}
 
-
-
 <script>
-
-
-
 
     $(function () {
         const modal = $("#recipe-modal");
@@ -215,56 +222,73 @@
             image.attr("src", imageUrl);
             image.attr("alt", "Recipe Image");
 
+            // Set the recipe title and id in the modal
             const titleLink = $("#modal-recipe-title");
-            titleLink.text(recipeTitle);
-            titleLink.attr("href", recipeSourceUrl);
-            recipeSummary.text("Loading...");
-
+            $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
+            $("#recipe-instructions").text(recipeInstructions);
+            $("#recipe-link").attr("href", recipeSourceUrl);
+        });
+    });
+    $(function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
             // Fetch recipe summary from the server
             $.ajax({
-                url: "/recipe_summary/" + recipeId,
-                success: function (response) {
-                    recipeSummary.text(response.summary);
-                },
-                error: function () {
-                    recipeSummary.text("Error loading summary.");
-                }
-            });
-        });
-
-
-        function highlightButton(button) {
-            button.classList.add("btn-pressed");
+        url: "/recipe_summary/" + recipeId,
+        success: function (response) {
+            recipeSummary.text(response.summary);
+        },
+        error: function () {
+            recipeSummary.text("Error loading summary.");
         }
-
-        $(function () {
-            $('#recipe-modal').on('hidden.bs.modal', function () {
-                const button = $('.btn-pressed');
-                button.removeClass('btn-pressed');
-
-                // Remove the highlight effect after 3 seconds
-                setTimeout(function (btn) {
-                    btn.removeClass('btn-pressed');
-                }, 7000, button);
-            });
+    });
         });
+
+
+
+
+    $(function () {
+        $('#recipe-modal').on('hidden.bs.modal', function () {
+            const button = $('.btn-pressed');
+            button.removeClass('btn-pressed');
+
+            // Remove the highlight effect after 3 seconds
+            setTimeout(function (btn) {
+                btn.removeClass('btn-pressed');
+            }, 7000, button);
+        });
+    });
+
 </script>
 
 <script>
-        // Show warning modal when "Recipe" button is clicked
-        $(".show-warning-modal").on("click", function (event) {
-            event.preventDefault();
-            const recipeUrl = $(this).data("recipe-url");
-            $("#continue-external").data("recipe-url", recipeUrl);
-            $("#warning-modal").modal("show");
-        });
-
-        // Redirect the user when the "Continue" button is clicked in the warning modal
-        $("#continue-external").on("click", function () {
-            const recipeUrl = $(this).data("recipe-url");
-            window.open(recipeUrl, "_blank", "noopener noreferrer");
-            $("#warning-modal").modal("hide");
-        });
+    // Hide warning modal when "Back" button or "X" button is clicked
+    $("#back-button, .close").on("click", function () {
+        $("#warning-modal").modal("hide");
+    });
 </script>
 
+<script>
+    // Show warning modal when "Recipe" button is clicked
+    $(".show-warning-modal").on("click", function (event) {
+        event.preventDefault();
+        const recipeUrl = $(this).data("recipe-url");
+        $("#continue-external").data("recipe-url", recipeUrl);
+        $("#warning-modal").modal("show");
+    });
+
+    // Redirect the user when the "Continue" button is clicked in the warning modal
+    $("#continue-external").on("click", function () {
+        const recipeUrl = $(this).data("recipe-url");
+        window.open(recipeUrl, "_blank", "noopener noreferrer");
+        $("#warning-modal").modal("hide");
+    });
+</script>
+<script>
+    function showRecipe(recipe) {
+        document.getElementById('modal-recipe-title').innerText = recipe.title;
+        document.getElementById('modal-recipe-image').src = recipe.image;
+        document.getElementById('modal-recipe-instructions').innerText = recipe.instructions;
+    }
+</script>
 {% endblock %}

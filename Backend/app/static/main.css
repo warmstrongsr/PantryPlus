@@ -1,29 +1,42 @@
-body{
-    background-color: white !important ;
+body {
+	background-color: white;
 }
 
 .btn-pressed {
-  background-color: yellow;
+	background-color: yellow;
 }
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
+
+.card-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100%;
+	
 }
-.button-row {
+/* .button-row {
     display: flex;
     justify-content: space-around;
     align-items: center;
     margin-bottom: 0;
-}
+} */
 .modal-title-link {
-    font-size: inherit;
+	font-size: inherit;
 }
 .recipe-summary.scrollable {
-  max-height: 200px; /* adjust as needed */
-  overflow-y: auto;
+	max-height: 200px;
+	overflow-y: auto;
 }
+
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.button-row > * {
+	flex: 1 1 46%;
+	margin: 0.5em 0;
+}
+
 /* .btn {
     margin:auto;
     display:block;
@@ -35,8 +48,3 @@ body{
     left: 0;
     right: 0;
 } */
-
-
-
-
-      

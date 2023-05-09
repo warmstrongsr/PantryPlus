@@ -15,13 +15,13 @@
 {% block content %}
 <style>
 
-    body {
-    background-color: black;
-    }
-    .btn {
-        margin: auto;
-        display: block;
-    }
+body {
+background-color: black;
+}
+.btn {
+    margin: auto;
+    display: block;
+}
     .btn-pressed {
   background-color: yellow;
 }
@@ -50,7 +50,8 @@
             class="table table-bordered table-striped bg-secondary-subtle mt-2">
             <thead>
                 <tr class="text-center">
-                    <th>#</th>
+                    <!-- Attempt to make sortable table. Will continue attempt later. -->
+                    <th>#</th> 
                     <th class="sortable" data-column="title"
                         data-order="{{ 'asc' if sort_by == 'title' and order == 'desc' else 'desc' if sort_by == 'title' and order == 'asc' else 'asc' }}">
                         Title</th>
@@ -155,6 +156,7 @@
             const recipeTitle = button.data("recipe-title");
             const imageUrl = button.data("image-url");
             const recipeSourceUrl = button.data("recipe-source-url");
+            const recipeSummary = $("#recipe-summary");
 
             $("#recipe-link").attr("href", recipeSourceUrl);
 
