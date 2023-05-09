@@ -32,7 +32,7 @@ def get_a_user_by_id(user_id):
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=True)
     link = db.Column(db.String(500))
     image = db.Column(db.String(500))
     instructions = db.Column(db.Text, nullable=True)
@@ -207,6 +207,8 @@ def store_database_recipes(recipes, user_id):
 
             db.session.commit()
 
+def formatted_ingredients(ingredients):    
+    return ', '.join(ingredient['name'] for ingredient in ingredients)
 
 def get_top_favorited_recipes(limit=10):
     top_favorited_recipes = db.session.query(Recipe, db.func.count(favorites.c.user_id).label('total_favorites'))\
@@ -225,10 +227,9 @@ class RecipeEncoder(json.JSONEncoder):
             return obj.to_dict()
         return json.JSONEncoder.default(self, obj)
 
-# ****DELETE****DELETE***DELETE*****
-
-
 def delete_null_title_recipes():
     null_title_recipes = Recipe.query.filter(Recipe.title.is_(None)).all()
     for recipe in null_title_recipes:
         db.session.delete(recipe)
+        
+

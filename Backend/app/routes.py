@@ -7,7 +7,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from sqlalchemy.orm import aliased
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
-from app.models import User, Recipe, favorites, db, store_recipes,  store_database_recipes, delete_null_title_recipes
+from app.models import User, Recipe, favorites, db, store_recipes,  store_database_recipes, formatted_ingredients, delete_null_title_recipes
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 import math
@@ -16,6 +16,8 @@ import json
 
 
 spoonacular_api_key = API_KEY
+
+
 
 # Only use filtered recipes from the database
 def get_filtered_recipes(recipes):
@@ -414,6 +416,13 @@ def delete_recipe(recipe_id):
     db.session.commit()
     flash(f"{recipe_to_delete.title} has been deleted", "info")
     return redirect(url_for('account'))
+
+@app.route('/recipes')
+def list_recipes():
+    recipes = Recipe.query.all()
+    for recipe in recipes:
+        recipe['formatted_ingredients'] = format_ingredients(recipe['ingredients'])
+    return render_template('recipes.html', recipes=recipes)
 
 # def get_recipe_data(recipe_id):
 #     api_key = '<your_spoonacular_api_key>'
