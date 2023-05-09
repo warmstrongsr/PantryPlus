@@ -30,7 +30,6 @@ user_recipes = db.Table('user_recipes',
 def get_a_user_by_id(user_id):
     return db.session.get(User, user_id)
 
-
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -90,7 +89,7 @@ class Recipe(db.Model):
             "date_created": formatted_date,
             "is_favorite": is_favorite,
             "image": self.image,
-            "favorited_by": self.favorited_by,
+            "favorited_by": favorited_by,  # Change this line
             "ingredients": self.ingredients,
             "instructions": self.instructions,
             "summary": self.summary,

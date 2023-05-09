@@ -162,7 +162,7 @@ def account():
     sort_by = request.args.get('sort_by', 'title')
     order = request.args.get('order', 'asc')
     page = request.args.get('page', 1, type=int)
-    per_page = 20 # number of items to display per page
+    per_page = 15 # number of items to display per page
     username = None
     recipe_query = Recipe.query.join(Recipe.favorited_by).filter(User.id == current_user.id)
 

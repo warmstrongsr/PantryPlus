@@ -2,20 +2,16 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField, PasswordField
 from wtforms.validators import InputRequired, EqualTo, Length, DataRequired
 
-
 class RecipeForm(FlaskForm):
     recipe = StringField('Recipe', validators=[InputRequired()])
     search_term = StringField('Search Term')
     submit = SubmitField('Submit Address')
-    
-
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])
     search_term = StringField('Search Term')
     submit = SubmitField('Log In')
-    
-    
+        
 class SignUpForm(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()])
     last_name = StringField('Last Name', validators=[InputRequired()])
@@ -35,9 +31,6 @@ class SearchForm(FlaskForm):
         if 'default_search_term' in kwargs:
             self.search_term.data = kwargs['default_search_term']
 
-
-    
-    
 class IngredientForm(FlaskForm):
     ingredient = StringField('Ingredient', validators=[InputRequired()])
     search_term = StringField('Search Term')
@@ -48,3 +41,12 @@ class AddRecipeForm(FlaskForm):
     link = StringField('Link', validators=[DataRequired()])
     image = StringField('Image URL')
     submit = SubmitField('Add Recipe')
+    
+class InstructionsForm(FlaskForm):
+    instruction = StringField('Instructions :', validators=[DataRequired()])
+    search_term = StringField('Search Term')
+    submit = SubmitField('Instructions')
+class StrategyForm(FlaskForm):
+    strategy = StringField('Instructions :', validators=[DataRequired()])
+    search_term = StringField('Search Term')
+    submit = SubmitField('Strategy : ')

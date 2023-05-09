@@ -10,8 +10,7 @@
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search
-            by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
@@ -28,22 +27,25 @@
 </style> -->
 
 {% block content %}
+
+
 {% if current_user.is_authenticated %}
 {% if recipes %}
-<div class="container" style="border-radius: 0">
+<div class="container" id= button-cards style="border-radius: 0">
+    <div class="card-btn-contents">
     <div class="row row-cols-1 row-cols-md-5 mt-4">
         {% for recipe in recipes %}
-        <div class="col mb-0 mt-4">
+        <div class="col mb-0 mt-2">
             <div class="card h-100">
                 <img src="{{ recipe.image }}" class="card-img-top"
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
                     <div class="card-content">
-                        <h6><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                                target="_blank">{{ recipe.title}}</a></h6>
+                        <small><a href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                                target="_blank">{{ recipe.title}}</a></small>
                     </div>
 
-                    <div class="button-row">
+                    <div class="button-row my-0">
                         <button
                             class="btn btn-outline-warning btn-sm show-warning-modal"
                             data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
@@ -92,10 +94,9 @@
 <!-- Recipe list -->
 {% for recipe in recipes %}
 <div>
-    <h2>{{ recipe.title }}</h2>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-        data-bs-target="#recipeModal"
-        onclick="showRecipe({{ recipe|tojson|safe }})">View Recipe</button>
+   
+  
+
 </div>
 {% endfor %}
 
@@ -130,6 +131,7 @@
     </div>
 </div>
 </div>
+</div>
 
 
 <!-- Warning Modal -->
@@ -159,7 +161,7 @@
 
 {% if pagination %}
 <nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center my-3">
         {% if pagination.has_prev %}
         <li class="page-item">
             <a class="page-link"

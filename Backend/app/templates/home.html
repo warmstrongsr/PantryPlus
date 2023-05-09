@@ -9,8 +9,7 @@
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search
-            by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>
@@ -33,12 +32,12 @@
                 <div class="card-body text-center">
                     <div class="card-content">
                         <h6>
-                            <span
+                            <small><span
                                 class="title-link show-warning-modal text-primary text-decoration-underline"
                                 data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                                 style="cursor:pointer;">{{ recipe.title
                                 }}</span>
-                        </h6>
+                        </small>
                     </div>
 
                     <div class="button-row">
@@ -49,26 +48,19 @@
                             target="_blank" rel="noopener noreferrer"
                             class="btn btn-outline-warning btn-sm">Link</button> -->
                         {% endif %}
-
-                        <button
-                            class="btn btn-outline-primary btn-sm me-auto border-radius: 50% 20% / 10% 40%;"
+                                <div class="button-row my-0">
+                        <button class="btn btn-outline-primary btn-sm me-auto btn-fixed-width"
                             data-toggle="modal" data-target="#recipe-modal"
                             data-recipe-id="{{ recipe.id }}"
                             data-image-url="{{ recipe.image }}"
                             data-recipe-source-url="{{ recipe.sourceUrl }}"
                             data-recipe-title="{{ recipe.title }}"
-                            onclick="highlightButton(this);">
-                            Summary
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm me-auto"
-                            data-toggle="modal" data-target="#recipe-modal"
-                            data-recipe-id="{{ recipe.id }}"
-                            data-image-url="{{ recipe.image }}"
-                            data-recipe-source-url="{{ recipe.sourceUrl }}"
-                            data-recipe-title="{{ recipe.title }}"
-                            onclick="highlightButton(this);">
-                            Summary
-                        </button>
+                            data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|truncate(425, True)|striptags|safe}}"
+                            data-recipe-ingredients="{{ (recipe.ingredients|default('No ingredients provided'))|truncate(425, True)|striptags|safe }}"
+                            data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|truncate(425, True)|striptags|safe }}"
+                            onclick="highlightButton(this);">Recipe</button>
+                           
+                        
                         <button
                             class="btn btn-outline-primary btn-sm me-auto btn-fixed-width"
                             data-toggle="modal" data-target="#recipe-modal"
@@ -79,9 +71,7 @@
                             data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|truncate(425, True)|striptags|safe}}"
                             data-recipe-ingredients="{{ (recipe.ingredients|default('No ingredients provided'))|truncate(425, True)|striptags|safe }}"
                             data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|truncate(425, True)|striptags|safe }}"
-                            onclick="highlightButton(this);">Summary</button>
-
-
+                            onclick="highlightButton(this);">Summary</button></div>
 
                         {% if current_user.is_authenticated %}
                         <form method="post"
