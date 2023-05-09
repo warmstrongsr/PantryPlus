@@ -17,7 +17,7 @@ favorites = db.Table('favorites',
                      db.Column('recipe_id', db.Integer,
                                db.ForeignKey('recipe.id')),
                      db.Column('date_favorited', db.DateTime,
-                               default=datetime.utcnow)
+                               default=datetime.utcnow, nullable=True),
                      )
 
 user_recipes = db.Table('user_recipes',
@@ -25,18 +25,19 @@ user_recipes = db.Table('user_recipes',
                             'user.id'), primary_key=True),
                         db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True))
 
+
 @login.user_loader
 def get_a_user_by_id(user_id):
     return db.session.get(User, user_id)
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=True)
     link = db.Column(db.String(500))
     image = db.Column(db.String(500))
     instructions = db.Column(db.Text, nullable=True)
     ingredients = db.Column(db.Text, nullable=True)
-    summary = db.Column(db.Text, nullable=True) # Add summary column
+    summary = db.Column(db.Text, nullable=True)  # Add summary column
     date_created = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey(
@@ -58,7 +59,7 @@ class Recipe(db.Model):
 
     def __repr__(self):
         return f"<Recipe {self.id}|{self.title}>"
-    
+
     def has_required_info(self):
         return (
             self.title
@@ -88,7 +89,7 @@ class Recipe(db.Model):
             "date_created": formatted_date,
             "is_favorite": is_favorite,
             "image": self.image,
-            "favorited_by": self.favorited_by,
+            "favorited_by": favorited_by,  # Change this line
             "ingredients": self.ingredients,
             "instructions": self.instructions,
             "summary": self.summary,
@@ -108,7 +109,8 @@ class Recipe(db.Model):
 
     def favorite_count(self):
         return self.favorited_by.count()
-    
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50), nullable=False)
@@ -123,7 +125,8 @@ class User(db.Model, UserMixin):
 
     recipes = db.relationship(
         'Recipe', secondary=user_recipes, backref=db.backref('recipe_users', lazy='dynamic'))
-    latest_added_recipes = db.relationship('Recipe', order_by=Recipe.date_created.desc())
+    latest_added_recipes = db.relationship(
+        'Recipe', order_by=Recipe.date_created.desc())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -145,7 +148,8 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
-    
+
+
 def store_recipes(recipes, user_id):
     if not current_user.is_authenticated or not current_user.is_active:
         return
@@ -164,7 +168,7 @@ def store_recipes(recipes, user_id):
                 date_created=datetime.now(),
                 instructions=recipe.get('instructions', ''),
                 summary=recipe.get('summary', ''),
-                user_id=user_id,        
+                user_id=user_id,
             )
             db.session.add(new_recipe)
             db.session.commit()
@@ -172,14 +176,19 @@ def store_recipes(recipes, user_id):
         else:
             # Update the existing recipe with new data
             existing_recipe.title = recipe.get('title', existing_recipe.title)
-            existing_recipe.link = recipe.get('sourceUrl', existing_recipe.link)
-            existing_recipe.ingredients = json.dumps(recipe.get('extendedIngredients', []))
+            existing_recipe.link = recipe.get(
+                'sourceUrl', existing_recipe.link)
+            existing_recipe.ingredients = json.dumps(
+                recipe.get('extendedIngredients', []))
             existing_recipe.image = recipe.get('image', existing_recipe.image)
-            existing_recipe.instructions = recipe.get('instructions', existing_recipe.instructions)
-            existing_recipe.summary = recipe.get('summary', existing_recipe.summary)
+            existing_recipe.instructions = recipe.get(
+                'instructions', existing_recipe.instructions)
+            existing_recipe.summary = recipe.get(
+                'summary', existing_recipe.summary)
 
             db.session.commit()
-            
+
+
 def store_database_recipes(recipes, user_id):
     if not current_user.is_authenticated or not current_user.is_active:
         return
@@ -187,7 +196,7 @@ def store_database_recipes(recipes, user_id):
     for recipe in recipes:
         existing_recipe = Recipe.query.filter_by(id=recipe.id).first()
 
-        if  existing_recipe:
+        if existing_recipe:
             # Update the existing recipe with new data
             existing_recipe.title = recipe.title
             existing_recipe.link = recipe.link
@@ -198,6 +207,9 @@ def store_database_recipes(recipes, user_id):
 
             db.session.commit()
 
+def formatted_ingredients(ingredients):    
+    return ', '.join(ingredient['name'] for ingredient in ingredients)
+
 def get_top_favorited_recipes(limit=10):
     top_favorited_recipes = db.session.query(Recipe, db.func.count(favorites.c.user_id).label('total_favorites'))\
         .join(favorites)\
@@ -205,8 +217,9 @@ def get_top_favorited_recipes(limit=10):
         .order_by(db.desc('total_favorites'))\
         .limit(limit)\
         .all()
-    
+
     return top_favorited_recipes
+
 
 class RecipeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -214,9 +227,9 @@ class RecipeEncoder(json.JSONEncoder):
             return obj.to_dict()
         return json.JSONEncoder.default(self, obj)
 
-#****DELETE****DELETE***DELETE*****
 def delete_null_title_recipes():
     null_title_recipes = Recipe.query.filter(Recipe.title.is_(None)).all()
     for recipe in null_title_recipes:
         db.session.delete(recipe)
-    db.session.commit()
+        
+

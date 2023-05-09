@@ -34,7 +34,13 @@
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
                     <div class="card-content">
-                        <h6 class="card-title">{{ recipe.title }}</h6>
+                        <h6>
+                            <span
+                                class="title-link show-warning-modal text-primary text-decoration-underline"
+                                data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                                style="cursor:pointer;">{{ recipe.title
+                                }}</span>
+                        </h6>
                     </div>
 
                     <div class="button-row">
@@ -91,20 +97,22 @@
 <!-- Modal -->
 <div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="col text-center text-primary-emphasis">
-                    <h5><a href="#" class="modal-title-link"
-                            id="modal-recipe-title" target="_blank"
-                            rel="noopener noreferrer"></a></h5>
-                </div>
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">{{ recipe.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <img src="{{ recipe.image }}" alt="{{ recipe.title }}">
+            <p>{{ recipe.summary }}</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+    </div>
                     <div class="col-md-6">
                         <img src="" class="img-fluid" alt="Recipe Image">
                     </div>
@@ -140,8 +148,9 @@
             </div>
             <div class="modal-body">
                 <p>You will be redirected to an external website,
-                    <a href="#" class="modal-title-link" id="warning-recipe-title"
-                        target="_blank" rel="noopener noreferrer"></a>.
+                    <a href="#" class="modal-title-link"
+                        id="warning-recipe-title" target="_blank"
+                        rel="noopener noreferrer"></a>.
                     Click outside the modal or on the "X" button to stay on this
                     page.
                 </p>
