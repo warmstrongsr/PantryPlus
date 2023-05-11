@@ -1,6 +1,11 @@
 from flask import Flask
 # Import the Config class from the config module that has the app configurations like SECRET_KEY, etc
 from config import Config
+import json
+
+
+
+
 
 
 
@@ -38,4 +43,14 @@ login.login_message_category = 'danger'
 
 # import all of the routes from the routes file and models from the models file into the current package
 from app import routes, models
+
+def json_loads(value):
+    if value is None or value.strip() == '':
+        return None
+    return json.loads(value)
+
+app.jinja_env.filters['json_loads'] = json_loads
+
+
+app.jinja_env.filters['json_loads'] = json_loads
 

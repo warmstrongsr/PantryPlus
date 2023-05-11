@@ -18,13 +18,9 @@ depends_on = None
 
 
 def upgrade():
-    # add the new column to the favorites table
-    op.add_column('favorites', sa.Column('date_favorited', sa.DateTime(), nullable=True))
-    
-    # set dummy data for existing rows
-    op.execute("UPDATE favorites SET date_favorited = :date", {"date": datetime.utcnow()})
-
+    # update the new column with dummy values
+    op.execute("UPDATE favorites SET date_favorited = '2022-01-01'")
 
 def downgrade():
-    # remove the new column from the favorites table
-    op.drop_column('favorites', 'date_favorited')
+    # update the new column with dummy values
+    op.execute("UPDATE favorites SET date_favorited = '2022-01-01'")

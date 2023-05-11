@@ -4,7 +4,7 @@
 
 {% block header %}
 {% if current_user.is_authenticated %}
-<h3>Full Menu <h4>Total recipes: {{ recipes|length }}</h4></h3>
+<h3>Full Menu </h3>
 {% if recipes %}
 {% endif %}
 {% else %}
@@ -52,16 +52,10 @@ background-color: black;
                 <tr class="text-center">
                     <!-- Attempt to make sortable table. Will continue attempt later. -->
                     <th>#</th> 
-                    <th class="sortable" data-column="title"
-                        data-order="{{ 'asc' if sort_by == 'title' and order == 'desc' else 'desc' if sort_by == 'title' and order == 'asc' else 'asc' }}">
-                        Title</th>
-                    <th class="sortable" data-column="recipe_id"
-                        data-order="{{ 'asc' if sort_by == 'recipe_id' and order == 'desc' else 'desc' if sort_by == 'recipe_id' and order == 'asc' else 'asc' }}">
-                        Recipe ID</th>
-                    <th class="sortable" data-column="date_created"
-                        data-order="{{ 'asc' if sort_by == 'date_created' and order == 'desc' else 'desc' if sort_by == 'date_created' and order == 'asc' else 'asc' }}">
-                        Date Added</th>
-                    <th>Quick Look</th>
+                    <th class="sortable" data-column="title">Title</th>
+                    <th class="sortable" data-column="recipe_id">Recipe ID</th>
+                    <th class="sortable" data-column="date_created">Date Added</th>
+                    <th>Picture</th>
                     <th>Favorite</th>
                 </tr>
             </thead>
@@ -77,7 +71,7 @@ background-color: black;
                             href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
                             recipe.id }}</a>
                     </td>
-                    <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>
                         <button class="btn btn-outline-primary" data-toggle="modal" data-target="#recipe-modal"
                             data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}" onclick="highlightButton(this);">
