@@ -21,12 +21,9 @@ depends_on = None
 date_favorited = sa.Column(sa.DateTime())
 
 def upgrade():
-    # add the new column to the favorites table
-    op.add_column('favorites', 'date_favorited', date_favorited)
-
     # update the new column with dummy values
     op.execute("UPDATE favorites SET date_favorited = '2022-01-01'")
 
 def downgrade():
-    # remove the new column from the favorites table
-    op.drop_column('favorites', 'date_favorited')
+    # update the new column with dummy values
+    op.execute("UPDATE favorites SET date_favorited = '2022-01-01'")

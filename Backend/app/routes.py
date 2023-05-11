@@ -7,12 +7,14 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from sqlalchemy.orm import aliased
 from app.apikey import API_KEY
 from app.forms import SignUpForm, LoginForm, AddRecipeForm, SearchForm
-from app.models import User, Recipe, favorites, db, store_recipes,  store_database_recipes, formatted_ingredients, delete_null_title_recipes
+from app.models import User, Recipe, favorites, db, store_recipes,  store_database_recipes,  delete_null_title_recipes
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 import math
+import html
 import requests, random
 import json
+
 
 
 spoonacular_api_key = API_KEY
@@ -116,39 +118,35 @@ def index():
     if request.method == 'POST':
         recipes = session.get('random_recipes', [])
     else:
-        # recipes = get_random_recipes()
+        recipes = get_random_recipes()
         user_id = int(current_user.get_id())  # Get the current user's ID
-        # store_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
-        # session['random_recipes'] = recipes
+        store_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
+        session['random_recipes'] = recipes
         
-        # for recipe in recipes:
-        #     recipe_id = recipe.get('id', '')
-        #     recipe_title = recipe.get('title', '')
-        #     recipe_image = recipe.get('image', '')
-        #     recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
-        #     recipe_summary = get_recipe_summary(recipe_id)
-        #     recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link, 'summary': recipe_summary}
-        #     recipes.append(recipe)
+        for recipe in recipes:
+            recipe_id = recipe.get('id', '')
+            recipe_title = recipe.get('title', '')
+            recipe_image = recipe.get('image', '')
+            recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
+            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link}
+            recipes.append(recipe)
 
-        # # Store the fetched recipes in the database
-        # if current_user.is_authenticated and current_user.is_active:
-        #     store_recipes(recipes, current_user.id)
+        # Store the fetched recipes in the database
+        if current_user.is_authenticated and current_user.is_active:
+            store_recipes(recipes, current_user.id)
 
     # Filter out recipes with missing data
     valid_recipes = [recipe for recipe in recipes if recipe.get('title') and recipe.get('sourceUrl')]
-
-    # Define total pages based on number of recipes and recipes per page
+    
     recipes_per_page = 25
     total_pages = int(math.ceil(len(valid_recipes) / recipes_per_page))
-
-    # Get current page from query parameter or default to 1
+    
     current_page = int(request.args.get('page', 1))
 
     # Add dummy recipes to the valid recipes list if it's the last page
     if current_page == total_pages:
         valid_recipes += dummy_recipes
-
-    # Slice the recipes list to show only the recipes for the current page
+  
     start_index = (current_page - 1) * recipes_per_page
     end_index = start_index + recipes_per_page
     displayed_recipes = valid_recipes[start_index:end_index]
@@ -166,9 +164,13 @@ def account():
     page = request.args.get('page', 1, type=int)
     per_page = 15 # number of items to display per page
     username = None
+    recipe_image = None
+    recipe_title = None
+    
+    
     recipe_query = Recipe.query.join(Recipe.favorited_by).filter(User.id == current_user.id)
 
-    
+    recipe = None
     pagination = None
 
     if form.validate_on_submit():
@@ -187,6 +189,7 @@ def account():
         recipe_title = request.form.get('recipe_title', 'None')
         recipe_image = request.form.get('recipe_image')
         recipe_obj = Recipe.query.get(recipe_id)
+        recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
         recipe = None
 
         if recipe_obj is not None:
@@ -207,7 +210,7 @@ def account():
             
             # Filter out recipes with missing data
    
-    return render_template('account.html', recipes=recipes, form=form, username=username, pagination=pagination)
+    return render_template('account.html', recipes=recipes, form=form, username=username, pagination=pagination,recipe=recipe,recipe_title=recipe_title, recipe_image=recipe_image)
 
 
 @app.route('/fullmenu', methods=['GET', 'POST'])
@@ -246,7 +249,7 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 10  # Set the desired number of results per page
+    results_per_page = 40  # Set the desired number of results per page
     url = f'https://api.spoonacular.com/recipes/findByIngredients?number=100&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm(default_search_term=search_term)
@@ -256,16 +259,14 @@ def results(search_term, page=1):
         offset = (page - 1) * results_per_page  # Calculate the offset based on the current page
         results_data = []
 
-        # for result in all_results_data[offset:offset+results_per_page]:
-        #     recipe_id = result['id']
-        #     recipe_title = result['title']
-        #     recipe_image = result['image']
-        #     recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
-        #     # recipe_summary = get_recipe_summary(recipe_id)
-        #     recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link,} 
-            
-            # 'summary': recipe_summary}
-            # results_data.append(recipe)
+        for result in all_results_data[offset:offset+results_per_page]:
+            recipe_id = result['id']
+            recipe_title = result['title']
+            recipe_image = result['image']
+            recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
+            recipe_summary = get_recipe_summary(recipe_id)
+            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link,'summary': recipe_summary}
+            results_data.append(recipe)
 
         # Store the fetched recipes in the database
         if current_user.is_authenticated and current_user.is_active:
@@ -286,6 +287,7 @@ def toggle_favorite():
     recipe_title = request.form.get('recipe_title')
     recipe_image = request.form.get('recipe_image')
     recipe = Recipe.query.get(recipe_id)
+    
 
     if not recipe:
         recipe = Recipe(id=recipe_id, title=recipe_title, image=recipe_image)
@@ -302,7 +304,9 @@ def toggle_favorite():
         flash(f'{recipe.title} {recipe.id} added to favorites.', 'success')
 
     db.session.commit()
-
+    search_term = ''
+    
+    page = 1
     # Get the previous page URL from the request referrer
     prev_page = request.referrer
     if prev_page:
@@ -316,7 +320,7 @@ def toggle_favorite():
             page = parse_qs(parsed_url.query).get('page', [1])[0]
             return redirect(url_for('account', search_term=search_term, page=page, _external=True))
     # If the previous page URL is not available, redirect to the index page
-    return redirect(url_for('account', _method='POST', _external=True))
+    return redirect(url_for('account', search_term=search_term, page=page, _external=True))
 
 
 
@@ -417,12 +421,26 @@ def delete_recipe(recipe_id):
     flash(f"{recipe_to_delete.title} has been deleted", "info")
     return redirect(url_for('account'))
 
+@app.route('/recipe')
+def recipe():
+  recipe = Recipe.query.all() # replace this with however you're getting the recipe
+  return render_template('recipe.html', recipe=recipe)
+
+
 @app.route('/recipes')
 def list_recipes():
     recipes = Recipe.query.all()
     for recipe in recipes:
-        recipe['formatted_ingredients'] = format_ingredients(recipe['ingredients'])
+        recipe.ingredients = json.loads(recipe.ingredients)
     return render_template('recipes.html', recipes=recipes)
+
+
+# @app.route('/recipes')
+# def list_recipes():
+#     recipes = Recipe.query.all()
+#     for recipe in recipes:
+#         recipe_ingredients = json.dumps(recipe.ingredients)
+#     return render_template('recipes.html', recipes=recipes)
 
 # def get_recipe_data(recipe_id):
 #     api_key = '<your_spoonacular_api_key>'
@@ -434,11 +452,8 @@ def list_recipes():
 #     else:
 #         return None
 
-# def get_random_recipes():
-#     api_key = spoonacular_api_key
-#     url = f'https://api.spoonacular.com/recipes/random?number=100&apiKey={api_key}'
-#     response = requests.get(url)
-#     data = json.loads(response.text)
+def get_random_recipes():
+    return db.session.query(Recipe).filter(Recipe.title.isnot(None)).order_by(func.random()).limit(25).all()
 
     # recipes = []
     # for recipe in data['recipes']:
@@ -463,21 +478,21 @@ def list_recipes():
     
 
 
-# def get_random_recipes():
-#     api_key = spoonacular_api_key
-#     url = f"https://api.spoonacular.com/recipes/random?number=100&apiKey={api_key}"
-#     response = requests.get(url)
-#     data = json.loads(response.text)
-#     random_recipes = data['recipes']
-#     return random_recipes
+def get_random_recipes():
+    api_key = spoonacular_api_key
+    url = f"https://api.spoonacular.com/recipes/random?number=50&apiKey={api_key}"
+    response = requests.get(url)
+    data = json.loads(response.text)
+    random_recipes = data['recipes']
+    return random_recipes
 
-# def get_recipe_summary(recipe_id):
-#     api_key = spoonacular_api_key
-#     url = f"https://api.spoonacular.com/recipes/{recipe_id}/summary?apiKey={api_key}"
-#     response = requests.get(url)
-#     data = json.loads(response.text)
-#     recipe_summary = data['summary']
-#     return recipe_summary
+def get_recipe_summary(recipe_id):
+    api_key = spoonacular_api_key
+    url = f"https://api.spoonacular.com/recipes/{recipe_id}/summary?apiKey={api_key}"
+    response = requests.get(url)
+    data = json.loads(response.text)
+    recipe_summary = data['summary']
+    return recipe_summary
 
 
 

@@ -102,13 +102,18 @@ class Recipe(db.Model):
                 continue
             setattr(self, field, data[field])
         db.session.commit()
-
+        
     def delete(self):
         db.session.delete(self)
         db.session.commit()
 
     def favorite_count(self):
         return self.favorited_by.count()
+    
+    @property
+    def formatted_ingredients(self):
+        return ', '.join(ingredient for ingredient in self.ingredients)
+
 
 
 class User(db.Model, UserMixin):
@@ -203,12 +208,9 @@ def store_database_recipes(recipes, user_id):
             existing_recipe.ingredients = recipe.ingredients
             existing_recipe.image = recipe.image
             existing_recipe.instructions = recipe.instructions
-            existing_recipe.summary = recipe.summary
+            # existing_recipe.summary = recipe.summary # DO NOT USE THIS IN FULL MENU  **destroy api_key point count and breaks system**
 
             db.session.commit()
-
-def formatted_ingredients(ingredients):    
-    return ', '.join(ingredient['name'] for ingredient in ingredients)
 
 def get_top_favorited_recipes(limit=10):
     top_favorited_recipes = db.session.query(Recipe, db.func.count(favorites.c.user_id).label('total_favorites'))\
