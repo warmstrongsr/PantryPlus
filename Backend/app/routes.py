@@ -2,7 +2,7 @@ from app import app, db, forms, models
 from app.dummy_recipes import dummy_recipes
 from flask import Flask, render_template, url_for, flash, redirect, request, abort, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import desc, asc, text, func, literal, cast, String
+from sqlalchemy import desc, asc, text, func, literal, cast, String, or_
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.orm import aliased
 from app.apikey import API_KEY
@@ -45,11 +45,18 @@ def home():
     page = request.args.get('page', 1, type=int)
     per_page = 100
     username = None
+    search_term = None
+    total_results = 0
 
-    valid_recipe_query = Recipe.query.filter(Recipe.title.isnot(None), Recipe.id.isnot(None), Recipe.image.isnot(None), Recipe.summary.isnot(None))
+    valid_recipe_query = Recipe.query.filter(
+        Recipe.title.isnot(None),
+        Recipe.id.isnot(None),
+        Recipe.image.isnot(None),
+        Recipe.summary.isnot(None)
+    )
 
     recipe_query = valid_recipe_query
-    
+
     if current_user.is_authenticated:
         username = current_user.username
         favorite_query = valid_recipe_query.join(favorites).filter(favorites.c.user_id == current_user.id)
@@ -64,24 +71,31 @@ def home():
         username = "None"
 
     pagination = None
-    
+
     if form.validate_on_submit():
         search_term = form.search_term.data
-        recipes = recipe_query.filter(
-            (Recipe.id.ilike(f"%{search_term}%")) |
-            (Recipe.title.ilike(f"%{search_term}%")) |
-            (cast(Recipe.date_created, String).ilike(f"%{search_term}%"))
-        ).order_by(Recipe.date_created.asc()).all()
+        if search_term:
+            recipe_query = recipe_query.filter(
+                or_(
+                    Recipe.title.ilike(f"%{search_term}%"),
+                    Recipe.summary.ilike(f"%{search_term}%"),
+                    Recipe.ingredients.ilike(f"%{search_term}%")
+                )
+            )
+        recipes = recipe_query.order_by(Recipe.date_created.asc()).all()
+        search_term = form.search_term.data
+
     else:
-        pagination = recipe_query.filter(Recipe.title != None).order_by(Recipe.title.asc()).paginate(page=page, per_page=per_page, error_out=False)
+        pagination = recipe_query.paginate(page=page, per_page=per_page, error_out=False)
         recipes = pagination.items
-        
+
+    total_results = len(recipes)
+
     for recipe in recipes:
         recipe.summary = recipe.summary if recipe.summary is not None else 'No summary provided'
         recipe.ingredients = recipe.ingredients if recipe.ingredients is not None else 'No ingredients provided'
         recipe.instructions = recipe.instructions if recipe.instructions is not None else 'No instructions provided'
-    
-        
+
     if request.method == 'POST':
         recipe_id = request.form.get('recipe_id')
         recipe_title = request.form.get('recipe_title', 'None')
@@ -103,9 +117,23 @@ def home():
                     # Add the recipe to the user's favorites
                     current_user.favorites.append(recipe)
                     db.session.commit()
-                    flash(f'{recipe.title} added to favorites.', 'success')   
+                    flash(f'{recipe.title} added to favorites.', 'success')
 
-    return render_template('home.html', form=form, recipes=recipes, sort_by=sort_by, order=order, page=page, per_page=per_page, username=username,  pagination=pagination)
+    return render_template(
+        'home.html',
+        form=form,
+        recipes=recipes,
+        sort_by=sort_by,
+        order=order,
+        page=page,
+        per_page=per_page,
+        username=username,
+        pagination=pagination,
+        total_results=total_results,
+        search_term=search_term
+    )
+
+
 
 
 
@@ -219,6 +247,7 @@ def fullmenu():
     form = SearchForm()
     sort_by = request.args.get('sort_by', 'title')
     order = request.args.get('order', 'asc')
+    search_term = form.search_term.data
     
     # Query all recipes from the database
     recipes = Recipe.query
@@ -234,7 +263,8 @@ def fullmenu():
     user_id = int(current_user.get_id()) # Storing the current user id
     store_database_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
     
-    return render_template('full_menu.html', recipes=recipes, form=form, sort_by=sort_by, order=order)
+    return render_template('full_menu.html', recipes=recipes, form=form, sort_by=sort_by, order=order, total_results=len(recipes), search_term=search_term)
+
 
 
 @app.route('/search', methods=['GET'])
@@ -249,8 +279,8 @@ def search():
 @app.route('/results/<search_term>/<int:page>', methods=['GET'])
 def results(search_term, page=1):
     api_key = spoonacular_api_key
-    results_per_page = 40  # Set the desired number of results per page
-    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=100&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
+    results_per_page = 6 # Set the desired number of results per page
+    url = f'https://api.spoonacular.com/recipes/findByIngredients?number=1&limitLicense=true&ranking=1&ignorePantry=false&ingredients={search_term}&apiKey={api_key}'
     response = requests.get(url)
     form = forms.SearchForm(default_search_term=search_term)
 
@@ -265,20 +295,31 @@ def results(search_term, page=1):
             recipe_image = result['image']
             recipe_link = f"https://spoonacular.com/recipes/{'-'.join(recipe_title.split(' '))}-{recipe_id}"
             recipe_summary = get_recipe_summary(recipe_id)
-            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 'link': recipe_link,'summary': recipe_summary}
+            
+            # Fetch ingredients
+            used_ingredients = [ingr['original'] for ingr in result.get('usedIngredients', [])]
+            missed_ingredients = [ingr['original'] for ingr in result.get('missedIngredients', [])]
+            all_ingredients = used_ingredients + missed_ingredients
+
+            recipe = {'id': recipe_id, 'title': recipe_title, 'image': recipe_image, 
+                    'link': recipe_link, 'summary': recipe_summary, 
+                    'ingredients': all_ingredients}
             results_data.append(recipe)
 
         # Store the fetched recipes in the database
         if current_user.is_authenticated and current_user.is_active:
             store_recipes(results_data, current_user.id)
+            print(store_database_recipes)
 
         total_results = len(all_results_data)  # Get the total number of results
         total_pages = math.ceil(total_results / results_per_page)
-        return render_template('results.html', form=form, results=results_data, total_pages=total_pages, current_page=page, search_term=search_term)  # Return the results.html template
+        return render_template('results.html', form=form, results=results_data, total_results=total_results, total_pages=total_pages, current_page=page, search_term=search_term)  # Return the results.html template
     else:
         flash('Error in API request')
         return redirect(url_for('index'))
 
+
+from flask import redirect, url_for
 
 @login_required
 @app.route('/toggle_favorite', methods=['POST'])
@@ -304,23 +345,26 @@ def toggle_favorite():
         flash(f'{recipe.title} {recipe.id} added to favorites.', 'success')
 
     db.session.commit()
-    search_term = ''
     
-    page = 1
+    search_term = session.get('search_term', '')
+    page = session.get('page', 1)
     # Get the previous page URL from the request referrer
     prev_page = request.referrer
     if prev_page:
-        # Check if the previous page URL contains 'favorites' or 'results'
-        if 'favorites' in prev_page:
-            return redirect(url_for('account', _method='POST', _external=True))
+        if 'account' in prev_page:
+            return redirect(url_for('account', _external=True))
         elif 'results' in prev_page:
-            # Extract the search_term and page from the previous page URL
             parsed_url = urlparse(prev_page)
             search_term = parse_qs(parsed_url.query).get('search_term', [''])[0]
             page = parse_qs(parsed_url.query).get('page', [1])[0]
-            return redirect(url_for('account', search_term=search_term, page=page, _external=True))
-    # If the previous page URL is not available, redirect to the index page
-    return redirect(url_for('account', search_term=search_term, page=page, _external=True))
+            return redirect(url_for('results', search_term=search_term, page=page, _external=True))
+        elif 'home' in prev_page:
+            return redirect(url_for('home', _external=True))
+        elif 'fullmenu' in prev_page:
+            return redirect(url_for('fullmenu', _external=True))
+    # If the previous page URL is not available or is not recognized, redirect to the account page
+    return redirect(url_for('account', _external=True))
+
 
 
 
@@ -455,36 +499,36 @@ def list_recipes():
 def get_random_recipes():
     return db.session.query(Recipe).filter(Recipe.title.isnot(None)).order_by(func.random()).limit(25).all()
 
-    # recipes = []
-    # for recipe in data['recipes']:
-    #     recipe_id = recipe['id']
-    #     recipe_title = recipe['title']
-    #     recipe_image = recipe['image']
-    #     recipe_link = recipe['sourceUrl']
-    #     recipe_instructions = ' '.join([step['step'] for step in recipe['analyzedInstructions'][0]['steps']]) if recipe['analyzedInstructions'] else ''
-    #     recipe_summary = recipe['summary']
-    #     recipe_data = {
-    #         'id': recipe_id,
-    #         'title': recipe_title,
-    #         'image': recipe_image,
-    #         'sourceUrl': recipe_link,
-    #         'instructions': recipe_instructions,
-    #         'summary': recipe_summary
-    #     }
-    #     recipes.append(recipe_data)
+    recipes = []
+    for recipe in data['recipes']:
+        recipe_id = recipe['id']
+        recipe_title = recipe['title']
+        recipe_image = recipe['image']
+        recipe_link = recipe['sourceUrl']
+        recipe_instructions = ' '.join([step['step'] for step in recipe['analyzedInstructions'][0]['steps']]) if recipe['analyzedInstructions'] else ''
+        recipe_summary = recipe['summary']
+        recipe_data = {
+            'id': recipe_id,
+            'title': recipe_title,
+            'image': recipe_image,
+            'sourceUrl': recipe_link,
+            'instructions': recipe_instructions,
+            'summary': recipe_summary
+        }
+        recipes.append(recipe_data)
 
-    # return recipes
+    return recipes
 
     
 
 
-def get_random_recipes():
-    api_key = spoonacular_api_key
-    url = f"https://api.spoonacular.com/recipes/random?number=50&apiKey={api_key}"
-    response = requests.get(url)
-    data = json.loads(response.text)
-    random_recipes = data['recipes']
-    return random_recipes
+# def get_random_recipes():
+#     api_key = spoonacular_api_key
+#     url = f"https://api.spoonacular.com/recipes/random?number=50&apiKey={api_key}"
+#     response = requests.get(url)
+#     data = json.loads(response.text)
+#     random_recipes = data['recipes']
+#     return random_recipes
 
 def get_recipe_summary(recipe_id):
     api_key = spoonacular_api_key

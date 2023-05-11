@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %} Results {% endblock %}
+{% block title %} "{{ total_results }} Total Search Results for "{{ search_term.title() }}" {% endblock %}
 
 {% block header %}
 <h1>
     <div class="container my-3 px-5">
         <div class="row">
             <div class="col text-center">
-                <div class="mb-0">Search Results for "{{ search_term }}"</div>
+                <div class="mb-0">{{ total_results }} Total Search Results for "{{ search_term.title() }}"</div>
             </div>
         </div>
     </div>
@@ -35,7 +35,7 @@
 </style> -->
 
 <div class="container" style="border-radius: 0">
-    <div class="row row-cols-1 row-cols-md-5 mt-4">
+    <div class="row row-cols-1 row-cols-md-6 mt-4">
         {% for recipe in results %}
         <div class="col mb-0 mt-4">
             <div class="card h-100">
@@ -43,22 +43,28 @@
                     alt="{{ recipe.title }}">
                 <div class="card-body text-center">
                     <div class="card-content">
-                        <h6 class="card-title">{{ recipe.title }}</h6>
+                        <h6><span
+                                class="title-link show-warning-modal text-primary text-decoration-underline"
+                                data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                                style="cursor: pointer">{{
+                                recipe.title }}</span>
+                        </h6>
                     </div>
                     <div class="button-row">
-                        <button
-                            class="btn btn-outline-warning btn-sm show-warning-modal"
-                            data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                            target="_blank" rel="noopener noreferrer"
-                            class="btn btn-outline-warning btn-sm">Recipe</button>
                         <button class="btn btn-outline-primary btn-sm"
                             data-toggle="modal" data-target="#recipe-modal"
                             data-recipe-id="{{ recipe.id }}"
                             data-image-url="{{ recipe.image }}"
                             data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                             data-recipe-title="{{ recipe.title }}"
-                            data-recipe-instructions="{{ recipe.instructions|truncate(900, True)|striptags|safe }}"
-                            data-recipe-summary="{{ recipe.summary|truncate(900, True)|striptags|safe }}"
+                            data-recipe-ingredients="{{ (recipe.ingredients|default('No ingredients provided'))|striptags|safe }}"
+                            data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
+                            onclick="highlightButton(this);">Summary</button>
+                        <button class="btn btn-outline-warning btn-sm"
+                            data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            data-toggle="modal" data-target="#zoom-modal"
+                            data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
+                            data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
                             onclick="highlightButton(this);">Zoom</button>
                         <form method="post"
                             action="{{ url_for('toggle_favorite') }}"
@@ -87,15 +93,22 @@
 </div>
 
 
+
 <!-- Modal -->
 <div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="col text-center text-primary-emphasis">
-                    <h5><a href="#" class="modal-title-link"
-                            id="modal-recipe-title" target="_blank"
-                            rel="noopener noreferrer"></a></h5>
+                <h5>
+                    <a href="#" class="modal-title-link" id="modal-recipe-title" target="_blank"
+                        rel="noopener noreferrer"></a>
+                </h5>
+                <small>Clicking the recipe title will redirect you to the recipe source website,
+                    <a href="#" class="modal-title-link" id="warning-recipe-url" target="_blank"
+                        rel="noopener noreferrer">here</a>, in a seperate tab.
+                </small>
+
                 </div>
                 <button type="button" class="close" data-dismiss="modal"
                     aria-label="Close">
@@ -105,20 +118,32 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <img src="" class="img-fluid" alt="Recipe Image">
+                        <img src="" class="img-fluid" alt="Recipe Image" />
+                        <h6>Ingredients:</h6>
+                        <p id="recipe-ingredients"></p>
                     </div>
-                    <!-- Inside the modal -->
                     <div class="col-md-6">
-                        <h6 class="modal-title">Recipe preview:</h6>
-                        <p id="recipe-instructions"></p>
+            <h6 class="modal-title">Summary:</h6>
+            <p id="recipe-summary"></p>
                     </div>
                 </div>
-                {% for recipe in recipes %}
-                <h5 class="modal-title" id="modal-recipe-title"></h5>
+            </div>
+        </div>
+    </div>
 
-                {% else %}
-                <h5 class="modal-title">No recipes found</h5>
-                {% endfor %}
+</div>
+<!-- Zoom modal -->
+<div class="modal fade" id="zoom-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <img id="zoom-image" class="img-fluid"
+                            alt="Recipe Image"
+                            style="width: 100%; height: auto;">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -136,14 +161,13 @@
                 </button>
             </div>
             <div class="modal-body">
-
                 <p>You will be redirected to an external website,
-                    <a href="#" class="modal-title-link" id="warning-recipe-url" target="_blank"
-                        rel="noopener noreferrer"></a>. Click
-                    outside
-                    the modal or on the "X" button to stay on this page.
+                    <a href="#" class="modal-title-link" id="warning-recipe-url"
+                        target="_blank" rel="noopener noreferrer"></a>. Click
+                    outside the modal or on the "X" button to stay on this page.
                 </p>
             </div>
+
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary close"
@@ -187,7 +211,6 @@
 </div>
 
 <script>
-
     $(function () {
         const modal = $("#recipe-modal");
         const image = modal.find("img");
@@ -199,53 +222,77 @@
             const imageUrl = button.data("image-url");
             const recipeInstructions = button.data("recipe-instructions");
             const recipeSourceUrl = button.data("recipe-source-url");
+            const recipeIngredients = button.data("recipe-ingredients");
             const recipeSummary = button.data("recipe-summary");
-
-            $("#recipe-instructions").text(recipeInstructions);
 
             image.attr("src", imageUrl);
             image.attr("alt", "Recipe Image");
 
-            // Set the recipe title and id in the modal 
-
+            // Set the recipe title and id in the modal
             const titleLink = $("#modal-recipe-title");
             $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
             $("#recipe-instructions").text(recipeInstructions);
             $("#recipe-summary").text(recipeSummary);
+            $("#recipe-ingredients").text(recipeIngredients);
             $("#recipe-link").attr("href", recipeSourceUrl);
             titleLink.attr("href", recipeSourceUrl);
         });
     });
 
+    function highlightButton(button) {
+        button.classList.add("btn-pressed");
+    }
 
-    // Button Highlight function
-    $(function () {
-        $(".highlight-button").on("click", function () {
-            $(this).addClass("btn-pressed");
-        });
-    });
-
-    // Remove the highlight effect after 7 seconds
     $(function () {
         $("#recipe-modal").on("hidden.bs.modal", function () {
             const button = $(".btn-pressed");
             button.removeClass("btn-pressed");
 
-            setTimeout(function () {
-                button.removeClass("btn-pressed");
-            }, 7000);
+            // Remove the highlight effect after 3 seconds
+            setTimeout(
+                function (btn) {
+                    btn.removeClass("btn-pressed");
+                },
+                7000,
+                button
+            );
         });
     });
+</script>
+<script>
+    $(function () {
+        const zoomModal = $("#zoom-modal");
+        const zoomImage = zoomModal.find("#zoom-image");
 
- // Show warning modal when "Recipe" button is clicked
-    $(".show-warning-modal").on("click", function (event) {
-        event.preventDefault();
-        const recipeUrl = $(this).data("recipe-url");
-        $("#continue-external").data("recipe-url", recipeUrl);
-        $("#warning-recipe-url").attr("href", recipeUrl);
-        $("#warning-recipe-url").text(recipeUrl); // Add this line
-        $("#warning-modal").modal("show");
+        zoomModal.on("show.bs.modal", function (event) {
+            const button = $(event.relatedTarget);
+            const imageUrl = button.data("image-url");
+            const recipeSummary = button.data("recipe-summary");
+
+            zoomImage.attr("src", imageUrl);
+            zoomImage.attr("alt", "Recipe Image");
+            $("#recipe-summary").text(recipeSummary);
+        });
     });
+</script>
+<script>
+    // Hide warning modal when "Back" button or "X" button is clicked
+    $("#back-button, .close").on("click", function () {
+        $("#warning-modal").modal("hide");
+    });
+</script>
+
+<script>
+    // Show warning modal when "Recipe" button is clicked
+        $(".show-warning-modal").on("click", function (event) {
+            event.preventDefault();
+            const recipeUrl = $(this).data("recipe-url");
+            $("#continue-external").data("recipe-url", recipeUrl);
+            $("#warning-recipe-url").attr("href", recipeUrl);  // Set the href attribute
+            $("#warning-recipe-url").text(recipeUrl);  // Set the text of the link to the URL
+            $("#warning-modal").modal("show");
+        });
+
 
     // Redirect the user when the "Continue" button is clicked in the warning modal
     $("#continue-external").on("click", function () {
@@ -253,13 +300,18 @@
         window.open(recipeUrl, "_blank", "noopener noreferrer");
         $("#warning-modal").modal("hide");
     });
-    // Scrollable modal event
-    const summary = document.getElementById("recipe-instructions");
-
-    summary.addEventListener("click", function () {
-        summary.classList.toggle("scrollable");
-    });
-
 </script>
-
+<script>
+    function showRecipe(recipe) {
+        document.getElementById("modal-recipe-title").innerText =
+            recipe.title;
+        document.getElementById("modal-recipe-image").src = recipe.image;
+        document.getElementById("modal-recipe-instructions").innerText =
+            recipe.instructions;
+    }
+</script>
 {% endblock %}
+</div>
+</div>
+</h4>
+</h1>

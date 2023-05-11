@@ -35,12 +35,12 @@ background-color: black !important;
 						alt="{{ recipe.title }}" />
 					<div class="card-body text-center">
 						<div class="card-content">
-							<small><span
+							<h6><span
 									class="title-link show-warning-modal text-primary text-decoration-underline"
 									data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
 									style="cursor: pointer">{{
 									recipe.title }}</span>
-							</small>
+							</h6>
 						</div>
 
 						<div class="button-row my-0">
@@ -50,7 +50,7 @@ background-color: black !important;
 									data-target="#recipe-modal"
 									data-recipe-id="{{ recipe.id }}"
 									data-image-url="{{ recipe.image }}"
-									data-recipe-source-url="{{ recipe.sourceUrl }}"
+									data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
 									data-recipe-title="{{ recipe.title|striptags|safe }}"
 									data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}"
 									data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
@@ -59,17 +59,11 @@ background-color: black !important;
 									Summary
 								</button>
 								<button class="btn btn-outline-primary btn-sm"
-									data-toggle="modal"
-									data-target="#recipe-modal"
-									data-recipe-id="{{ recipe.id }}"
-									data-image-url="{{ recipe.image }}"
-									data-recipe-source-url="{{ recipe.sourceUrl }}"
-									data-recipe-title="{{ recipe.title|striptags|safe }}"
-									data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}"
+									data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+									data-toggle="modal" data-target="#zoom-modal"
+									data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
 									data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
-									onclick="highlightButton(this);">
-									Peek
-								</button>
+									onclick="highlightButton(this);">Zoom</button>
 
 								{% if current_user.is_authenticated %}
 								<form method="post"
@@ -144,7 +138,22 @@ background-color: black !important;
 	
 </div>
 
-
+<!-- Zoom modal -->
+<div class="modal fade" id="zoom-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-12">
+						<img id="zoom-image" class="img-fluid"
+							alt="Recipe Image"
+							style="width: 100%; height: auto;">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
 <!-- Warning Modal -->
 <div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
@@ -276,7 +285,22 @@ background-color: black !important;
 			});
 		});
 	</script>
-	
+	<script>
+		$(function () {
+			const zoomModal = $("#zoom-modal");
+			const zoomImage = zoomModal.find("#zoom-image");
+
+			zoomModal.on("show.bs.modal", function (event) {
+				const button = $(event.relatedTarget);
+				const imageUrl = button.data("image-url");
+				const recipeSummary = button.data("recipe-summary");
+
+				zoomImage.attr("src", imageUrl);
+				zoomImage.attr("alt", "Recipe Image");
+				$("#recipe-summary").text(recipeSummary);
+			});
+		});
+	</script>
 	<script>
 		// Hide warning modal when "Back" button or "X" button is clicked
 		$("#back-button, .close").on("click", function () {
@@ -290,6 +314,8 @@ background-color: black !important;
 			event.preventDefault();
 			const recipeUrl = $(this).data("recipe-url");
 			$("#continue-external").data("recipe-url", recipeUrl);
+			$("#warning-recipe-url").attr("href", recipeUrl);
+			$("#warning-recipe-url").text(recipeUrl); // Add this line
 			$("#warning-modal").modal("show");
 		});
 

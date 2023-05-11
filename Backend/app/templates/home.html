@@ -48,12 +48,12 @@
                     alt="<small>{{ recipe.title }}</small>" />
                 <div class="card-body text-center">
                     <div class="card-content">
-                        <small><span
-                                class="title-link show-warning-modal text-primary text-decoration-underline"
+                        <h6><span
+                                class="title-link show-warning-modal text-primary "
                                 data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                                 style="cursor: pointer">{{ recipe.title
                                 }}</span>
-                        </small>
+                        </h6>
                     </div>
 
                     <div class="button-row my-0">
@@ -62,18 +62,20 @@
                                 data-toggle="modal" data-target="#recipe-modal"
                                 data-recipe-id="{{ recipe.id }}"
                                 data-image-url="{{ recipe.image }}"
-                                data-recipe-source-url="{{ recipe.sourceUrl }}"
+                                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                                 data-recipe-title="{{ recipe.title|striptags|safe }}"
-                                data-recipe-ingredients="{{ (recipe.formatted_ingredients|default('No ingredients provided'))|striptags|safe }}"
+                                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
                                 data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}"
                                 onclick="highlightButton(this);">
                                 Summary
                             </button>
 
                             <button class="btn btn-outline-primary btn-sm"
+                                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                                 data-toggle="modal" data-target="#zoom-modal"
                                 data-recipe-id="{{ recipe.id }}"
                                 data-image-url="{{ recipe.image }}"
+                                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
                                 onclick="highlightButton(this);">Zoom</button>
 
                             {% if current_user.is_authenticated %}
@@ -137,18 +139,16 @@
     </div>
 
 <!-- Zoom modal -->
-
 <div class="modal fade" id="zoom-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
-
             <div class="modal-body">
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <div class="col-md-12">
-                <img id="zoom-image" class="img-fluid" alt="Recipe Image"style="max-width: 100%">
+                <div class="row">
+                    <div class="col-12">
+                        <img id="zoom-image" class="img-fluid"
+                            alt="Recipe Image"
+                            style="width: 100%; height: auto;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -269,13 +269,13 @@
         zoomModal.on("show.bs.modal", function (event) {
             const button = $(event.relatedTarget);
             const imageUrl = button.data("image-url");
+            const recipeSummary = button.data("recipe-summary");
 
             zoomImage.attr("src", imageUrl);
             zoomImage.attr("alt", "Recipe Image");
+            $("#recipe-summary").text(recipeSummary);
         });
     });
-
-
 </script>
 
 <script>
@@ -331,34 +331,5 @@
             recipe.instructions;
     }
 </script>
-<script>
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxCaption = document.getElementById('lightbox-caption');
-    const thumbnails = document.querySelectorAll('.thumbnail');
 
-    function showLightbox(imageUrl, caption) {
-        lightboxImage.src = imageUrl;
-        lightboxCaption.textContent = caption;
-        lightbox.classList.remove('hidden');
-    }
-
-    function hideLightbox() {
-        lightbox.classList.add('hidden');
-    }
-
-    thumbnails.forEach(function (thumbnail) {
-        thumbnail.addEventListener('click', function () {
-            const imageUrl = thumbnail.dataset.src;
-            const caption = thumbnail.alt;
-            showLightbox(imageUrl, caption);
-        });
-    });
-
-    lightbox.addEventListener('click', function (event) {
-        if (event.target === lightbox) {
-            hideLightbox();
-        }
-    });
-</script>
 {% endblock %}
