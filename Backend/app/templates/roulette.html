@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+     
+{% block title %} Roulette! {% endblock %}
+
+{% block header %}
+<h3>Welcome to Roulette {{ current_user.username.title() }}!</h3>
+{% if current_user.is_authenticated %}
+<h6><div class="rules-section">
+    <p> Here's how it works:</p>
+        <li>You are presented with 21 random
+            recipes.</li>
+        <li>From this selection, you can choose to "favorite" one
+            recipe. Once
+            favorited, the list will reset!</li>
+        <li>If none of the recipes catch your eye, simply hit 
+            {% if request.path == '/roulette' %}
+            {% if current_user.is_authenticated %}
+            <div class="navbar-nav ms-auto">
+                <div class="d-flex mt-2 ">
+                    <button onclick="location.reload()"
+                        class="btn btn-outline-light">Refresh</button>
+                </div>
+            </div>{% endif %}{% endif %}
+          </li>
+   
+</div></h6>
+<div class="col-lg-4">
+    
+    </div>
+</div>
+<small>
+    <div class="container" style="border-radius: 2px">
+        <div class="col-col-3 -md-3 ">
+    
+            <form action="{{ url_for('search') }}" method="GET" class="d-flex">
+               
+                {{ form.csrf_token }}
+                {{ form.search_term(class="form-control ml-2 me-2",
+                placeholder="Search by ingredients") }}
+                <button class="btn btn-outline-light"
+                    type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
+    {% endif %}
+    {% endblock %}
+
+    {% block content %}
+    {% if current_user.is_authenticated %}
+    {% if recipes %}
+<div class="container d-flex" style="border-radius: 2px">
+    <div class="row row-cols-1 row-cols-md-5 mt-4">
+   
+            {% for recipe in recipes %}
+            {% if recipe %}
+            <div class="col mb-0 mt-4">
+                <div class="card h-100">
+                    <img src="{{ recipe.image }}" class="card-img-top"
+                        alt="{{ recipe.title }}">
+                    <div class="card-body text-center">
+                        <div class="card-content">
+                            <h6 class="card-title">{{ recipe.title }}</h6>
+                        </div>
+
+                        <div class="button-row">
+                            <button
+                                class="btn btn-outline-warning btn-sm show-warning-modal"
+                                data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                                target="_blank" rel="noopener noreferrer"
+                                class="btn btn-outline-warning btn-sm">Source</button>
+                            <button
+                                class="btn btn-outline-primary btn-sm btn-block"
+                                data-toggle="modal" data-target="#recipe-modal"
+                                data-recipe-id="{{ recipe.id }}"
+                                data-image-url="{{ recipe.image }}"
+                                data-recipe-instructions="{{ recipe.instructions|truncate(700, True)|striptags|safe }}"
+                                data-recipe-source-url="{{ recipe.sourceUrl }}"
+                                data-recipe-title="{{ recipe.title }}"
+                                onclick="highlightButton(this);">
+                                Peek
+                            </button>
+
+                            {% if current_user.is_authenticated %}
+                            <form method="post"
+                                action="{{ url_for('toggle_favorite') }}"
+                                class="d-inline favorite-form">
+                                {{ form.csrf_token }}
+                                <input type="hidden" name="recipe_id"
+                                    value="{{ recipe.id }}" />
+                                {% if current_user in
+                                recipe.favorited_by %}
+                                <input type="submit" value="Unfavorite"
+                                    class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
+                                    data-is-favorite="true">
+                                {% else %}
+                                <input type="submit" value="Favorite"
+                                    class="btn btn-outline-success btn-sm me-auto toggle-favorite w-50"
+                                    data-is-favorite="true">
+                                {% endif %}
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+       
+    </div>
+{% if request.path == '/roulette' %}
+{% if current_user.is_authenticated %}
+<div class="navbar-nav ms-auto">
+    <div class="d-flex mb-5 ">
+        <button onclick="location.reload()"
+            class="btn btn-outline-secondary">Refresh</button>
+    </div>
+</div>{% endif %}{% endif %}
+
+    {% endif %}
+    <!-- Modal -->
+    <div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="col text-center text-primary-emphasis">
+                        <h5><a href="#" class="modal-title-link"
+                                id="modal-recipe-title" target="_blank"
+                                rel="noopener noreferrer"></a></h5>
+                        <small>Clicking the recipe title will redirect you to
+                            the recipe source website,
+                            <a href="#" class="modal-title-link"
+                                id="warning-recipe-url" target="_blank"
+                                rel="noopener noreferrer">here</a>, in a
+                            seperate tab.
+                        </small>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="" class="img-fluid" alt="Recipe Image">
+                        </div>
+                        <!-- Inside the modal -->
+                        <div class="col-md-6">
+                            <h6 class="modal-title">Recipe preview:</h6>
+                            <p id="recipe-instructions"></p>
+                        </div>
+                    </div>
+                    {% for recipe in recipes %}
+                    <h5 class="modal-title" id="modal-recipe-title"></h5>
+
+                    {% else %}
+                    <h5 class="modal-title">No recipes found</h5>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Warning Modal -->
+    <div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Warning</h5>
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You will be redirected to an external website,
+                        <a href="#" class="modal-title-link"
+                            id="warning-recipe-url" target="_blank"
+                            rel="noopener noreferrer"></a>. Click
+                        outside the modal or on the "X" button to stay on this
+                        page.
+                    </p>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary close close"
+                        data-dismiss="modal">Back</button>
+                    <button type="button" class="btn btn-primary"
+                        id="continue-external">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if total_pages > 1 %}
+    <div class="container" style="border-radius: 0">
+        <div class="row row-cols-1  mt-3 " style="border-radius: 0">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li
+                        class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('index', page=current_page-1) }}"
+                            {% if current_page==1 %}aria-disabled="true" {%
+                            endif %}>Previous</a>
+                    </li>
+                    {% for i in range(1, total_pages+1) %}
+                    <li
+                        class="page-item {% if current_page == i %}active{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('index', page=i) }}">{{
+                            i }}</a>
+                    </li>
+                    {% endfor %}
+                    <li
+                        class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('index', page=current_page+1) }}"
+                            {% if current_page==total_pages
+                            %}aria-disabled="true" {% endif %}>Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+    {% endblock %}

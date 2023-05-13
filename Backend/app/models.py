@@ -110,9 +110,9 @@ class Recipe(db.Model):
     def favorite_count(self):
         return self.favorited_by.count()
     
-    @property
-    def formatted_ingredients(self):
-        return ', '.join(ingredient for ingredient in self.ingredients)
+    # @property
+    # def formatted_ingredients(self):
+    #     return ', '.join(ingredient for ingredient in self.ingredients)
 
 
 
