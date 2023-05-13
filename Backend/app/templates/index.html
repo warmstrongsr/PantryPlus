@@ -42,48 +42,41 @@
                                 }}</span>
                         </h6>
                     </div>
-
-                    <div class="button-row">
-                        <button <button
-                            class="btn btn-outline-warning btn-sm show-warning-modal"
-                            data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                            data-recipe-title="{{ recipe.title }}"
-                            target="_blank" rel="noopener noreferrer"
-                            class="btn btn-outline-warning btn-sm">Recipe</button>
-
-
-                        <button class="btn btn-outline-primary btn-sm btn-block"
-                            data-toggle="modal" data-target="#recipe-modal"
-                            data-recipe-id="{{ recipe.id }}"
-                            data-image-url="{{ recipe.image }}"
-                            data-recipe-instructions="{{ recipe.instructions|truncate(425, True)|striptags|safe }}"
-                            data-recipe-source-url="{{ recipe.sourceUrl }}"
-                            data-recipe-title="{{ recipe.title }}"
-                            onclick="highlightButton(this);">
-                            Peek
-                        </button>
-
-
-                        {% if current_user.is_authenticated %}
-                        <form method="post"
-                            action="{{ url_for('toggle_favorite') }}"
-                            class="d-inline" id="favorite-form">
-                            {{ form.csrf_token }}
-                            <input type="hidden" name="recipe_id"
-                                value="{{ recipe.id }}">
-                            <input type="hidden" name="recipe_title"
-                                value="{{ recipe.title }}">
-                            <input type="hidden" name="recipe_image"
-                                value="{{ recipe.image }}">
-                            {% if recipe.is_favorite %}
-                            <input type="submit" value="Unfavorite"
-                                class="btn btn-outline-danger btn-block">
-                            {% else %}
-                            <input type="submit" value="Favorite"
-                                class="btn btn-outline-success btn-sm btn-block">
-                            {% endif %}
-                        </form>
-                        {% endif %}
+    <div class="button-container">
+        <div class="button-row my-0">
+    
+            <button class="btn btn-outline-warning btn-sm highlight-button"
+                data-toggle="modal" data-target="#recipe-modal"
+                data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
+                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                data-recipe-title="{{ recipe.title|striptags|safe }}"
+                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
+                data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}">
+                Summary
+            </button>
+    
+            <button class="btn btn-outline-primary btn-sm highlight-button"
+                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                data-toggle="modal" data-target="#zoom-modal"
+                data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
+                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}">Zoom</button>
+    
+            {% if current_user.is_authenticated %}
+            <form method="post" action="{{ url_for('toggle_favorite') }}"
+                class="d-inline favorite-form">
+                {{ form.csrf_token }}
+                <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
+                {% if current_user in recipe.favorited_by %}
+                <input type="submit" value="Unfavorite"
+                    class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
+                    data-is-favorite="true">
+                {% else %}
+                <input type="submit" value="Favorite"
+                    class="btn btn-outline-success btn-sm me-auto toggle-favorite"
+                    data-is-favorite="true">
+                {% endif %}
+            </form>
+            {% endif %}
                     </div>
                 </div>
             </div>
@@ -165,121 +158,6 @@
         </div>
     </div>
 </div>
-{% if total_pages > 1 %}
-<div class="container" style="border-radius: 0">
-    <div class="row row-cols-1  mt-3 " style="border-radius: 0">
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                <li
-                    class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                    <a class="page-link"
-                        href="{{ url_for('index', page=current_page-1) }}" {% if
-                        current_page==1 %}aria-disabled="true" {% endif
-                        %}>Previous</a>
-                </li>
-                {% for i in range(1, total_pages+1) %}
-                <li
-                    class="page-item {% if current_page == i %}active{% endif %}">
-                    <a class="page-link"
-                        href="{{ url_for('index', page=i) }}">{{
-                        i }}</a>
-                </li>
-                {% endfor %}
-                <li
-                    class="page-item {% if current_page == total_pages %}disabled{% endif %}">
-                    <a class="page-link"
-                        href="{{ url_for('index', page=current_page+1) }}" {% if
-                        current_page==total_pages %}aria-disabled="true" {%
-                        endif %}>Next</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-</div>
 
-{% endif %}
-
-<script>
-
-
-    $(function () {
-        const modal = $("#recipe-modal");
-        const image = modal.find("img");
-
-        modal.on("show.bs.modal", function (event) {
-            const button = $(event.relatedTarget);
-            const recipeId = button.data("recipe-id");
-            const recipeTitle = button.data("recipe-title");
-            const imageUrl = button.data("image-url");
-            const recipeInstructions = button.data("recipe-instructions");
-            const recipeSourceUrl = button.data("recipe-source-url");
-            const recipeSummary = button.data("recipe-summary");
-
-            $("#recipe-instructions").text(recipeInstructions);
-
-            image.attr("src", imageUrl);
-            image.attr("alt", "Recipe Image");
-
-            // Set the recipe title and id in the modal 
-
-            const titleLink = $("#modal-recipe-title");
-            $("#modal-recipe-title").text(recipeTitle + " " + recipeId);
-            $("#recipe-instructions").text(recipeInstructions);
-            $("#recipe-summary").text(recipeSummary);
-            $("#recipe-link").attr("href", recipeSourceUrl);
-            titleLink.attr("href", recipeSourceUrl);
-        });
-    });
-
-
-    // Button Highlight function
-    $(function () {
-        $(".highlight-button").on("click", function () {
-            $(this).addClass("btn-pressed");
-        });
-    });
-
-    // Remove the highlight effect after 7 seconds
-    $(function () {
-        $("#recipe-modal").on("hidden.bs.modal", function () {
-            const button = $(".btn-pressed");
-            button.removeClass("btn-pressed");
-
-            setTimeout(function () {
-                button.removeClass("btn-pressed");
-            }, 7000);
-        });
-    });
-
-    // Show warning modal when "Recipe" button is clicked
-    $(".show-warning-modal").on("click", function (event) {
-        event.preventDefault();
-        const recipeUrl = $(this).data("recipe-url");
-        const recipeTitle = $(this).data("recipe-title");
-        $("#continue-external").data("recipe-url", recipeUrl);
-        $("#warning-recipe-title").text(recipeTitle);
-        $("#warning-modal").modal("show");
-    });
-
-
-    // Hide warning modal when "Back" button or "X" button is clicked
-    $("#back-button, .close").on("click", function () {
-        $("#warning-modal").modal("hide");
-    });
-
-    // Redirect the user when the "Continue" button is clicked in the warning modal
-    $("#continue-external").on("click", function () {
-        const recipeUrl = $(this).data("recipe-url");
-        window.open(recipeUrl, "_blank", "noopener noreferrer");
-        $("#warning-modal").modal("hide");
-    });
-    // Scrollable modal event
-    const summary = document.getElementById("recipe-instructions");
-
-    summary.addEventListener("click", function () {
-        summary.classList.toggle("scrollable");
-    });
-
-</script>
 
 {% endblock %}

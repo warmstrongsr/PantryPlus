@@ -1,6 +1,6 @@
-/* body {
+body {
 	background-color: black;
-    } */
+    }
 
 /* .btn-pressed {
 	background-color: yellow;
@@ -24,6 +24,10 @@
   height: 2rem;
   /* margin: 0.25rem; */
 }
+
+    .btn-pressed {
+        background-color: yellow;
+    }
 
 /* .button-row {
     display: flex;

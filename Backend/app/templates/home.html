@@ -12,30 +12,48 @@
 </div>
 {% else %}
 <h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
-{% endif %} {% endblock %}
-
 <style>
+.button-row > *:first-child {
+    margin-right: 0.2em;
+}
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+    margin-bottom: 0
+}
+
+.button-row > * {
+	flex: 1 1 46%;
+	margin: 0.2em 0;
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+</style>
+{% endif %} {% endblock %}
+{% block content %}
+<style>
+
+
     .card-small {
         width: 200px;
     }
 
     .zoom-image {
-        max-width: 100%;
+        max-width: 80%;
     }
 
-    .button-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
 
-    .button-row>* {
-        flex: 1 1 33%;
-        margin: 0 1px;
-    }
+
+    
+
 </style>
 
-{% block content %}
+
 
 <div class="container" style="border-radius: 20px">
     <div class="row row-cols-1 row-cols-md-5 mt-4">
@@ -87,11 +105,11 @@
                                         value="{{ recipe.id }}" />
                                     {% if current_user in recipe.favorited_by %}
                                     <input type="submit" value="Unfavorite"
-                                        class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
+                                        class="btn btn-outline-danger btn-sm me-auto toggle-favorite w-50"
                                         data-is-favorite="true">
                                     {% else %}
                                     <input type="submit" value="Favorite"
-                                        class="btn btn-outline-success btn-sm me-auto toggle-favorite"
+                                        class="btn btn-outline-success btn-sm me-auto toggle-favorite w-50"
                                         data-is-favorite="true">
                                     {% endif %}
                                 </form>
@@ -203,7 +221,7 @@
             <a class="page-link" href="#">Previous</a>
         </li>
         {% endif %} {% for page_num in pagination.iter_pages(left_edge=0,
-        left_current=5, right_current=1, right_edge=1) %} {% if page_num %} {%
+        left_current=5, right_current=5, right_edge=1) %} {% if page_num %} {%
         if
         pagination.page == page_num %}
         <li class="page-item active">
