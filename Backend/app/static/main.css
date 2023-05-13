@@ -1,10 +1,10 @@
-body {
-	background-color: gray;
-}
+/* body {
+	background-color: black;
+    } */
 
-.btn-pressed {
+/* .btn-pressed {
 	background-color: yellow;
-}
+} */
 
 .card-body {
 	display: flex;
@@ -51,12 +51,19 @@ body {
 	flex: 1 1 46%;
 	margin: 0.2em 0;
 }
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
 
 
-/* .btn {
+.btn {
     margin:auto;
     display:block;
-} */
+}
 
 /* .card-footer {
     position: absolute;

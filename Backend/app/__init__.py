@@ -15,7 +15,7 @@ from flask_migrate import Migrate
 
 from flask_login import LoginManager
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 app.config.from_object(Config)
 # set optional bootswatch theme
 # app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
