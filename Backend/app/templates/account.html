@@ -3,7 +3,7 @@ header %}
 <h3>Nice to see you again, {{ current_user.username.title() }}!<h3>
 {% if current_user.is_authenticated %}
 <div class="mb-0">{{ total_results }} Total Search Results for
-	"{{ search_term.title() if search_term else 'No search term provided' }}"
+	"{{ search_term.title() if search_term else 'Requires search term' }}"
 </div>
 <div class="container" style="border-radius: 2">
 	<div class="col-col-3 -lg-3">
@@ -152,7 +152,7 @@ header %}
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Warning: Exiting site</h5>
+				<h5 class="modal-title">Warning: External website in new tab.</h5>
 				<button type="button" class="close" data-dismiss="modal"
 					aria-label="Close">
 					<span aria-hidden="true">&times;</span>
@@ -162,9 +162,8 @@ header %}
 				<p>
 					You will be redirected to an external website in a
 					new tab.
-					Click outside the modal or on the "X" button to stay
-					on this
-					page.
+					Click outside this box or on the "X" button to stay
+					on the current page.
 				</p>
 			</div>
 			<div class="modal-footer">

@@ -14,12 +14,10 @@
                 <form action="" method="post">
                     {{form.csrf_token}}
                     {{ form.username.label }}
-                    {{ form.username(class="form-control", placeholder="Enter
-                    Username") }}
+                    {{ form.username(class="form-control", placeholder="Enter Username") }}
 
                     {{ form.password.label }}
-                    {{ form.password(class="form-control", placeholder="Enter
-                    Password") }}
+                    {{ form.password(class="form-control", placeholder="Enter Password") }}
 
                     {{ form.submit(class="btn btn-primary w-100 mt-3") }}
 

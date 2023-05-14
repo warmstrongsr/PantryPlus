@@ -24,7 +24,7 @@
 
             </div>
     
-                    {% if request.path == '/account' or request.path == '/fullmenu' %}
+                    {% if request.path == '/account' or request.path == '/fullmenu' or request.path == '/results' %}
                     {% if current_user.is_authenticated %}
                     <div class="navbar-nav ms-auto">
                         <div class="d-flex">
