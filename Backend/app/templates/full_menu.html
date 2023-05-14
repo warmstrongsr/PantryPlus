@@ -11,7 +11,8 @@
         <div class="row">
             <div class="col text-center">
                 <div class="mb-0">{{ total_results }} Total Search Results for
-                    "{{ search_term.title() if search_term else 'No search term provided' }}"</div>
+                    "{{ search_term.title() if search_term else 'No search term
+                    provided' }}"</div>
             </div>
         </div>
     </div>
@@ -24,7 +25,6 @@
 
 {% block content %}
 <style>
-    
     body {
         background-color: black;
     }
@@ -60,9 +60,9 @@
                     <th class="sortable" data-column="title">Title</th>
                     <th class="sortable" data-column="recipe_id">Recipe ID</th>
                     <th>Summary</th>
-                </th>
-                <th>Image</th>
-                <th class="sortable" data-column="date_created">Date Added
+                    </th>
+                    <th>Image</th>
+                    <th class="sortable" data-column="date_created">Date Added
                     <th>Favorite</th>
                 </tr>
             </thead>
@@ -78,31 +78,34 @@
                         <a
                             href="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}">{{
                             recipe.id }}</a>
-                            </td>
-                            <td>
-                                <button class="btn btn-outline-warning btn-sm" data-toggle="modal"
-                                data-target="#recipe-modal" data-recipe-id="{{ recipe.id }}"
-                                data-image-url="{{ recipe.image }}"
-                                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                                data-recipe-title="{{ recipe.title|striptags|safe }}"
-                                data-recipe-ingredients="{{ (recipe.formatted_ingredients|default('No ingredients provided'))|striptags|safe }}"
-                                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
-                                data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}"
-                                onclick="highlightButton(this);">
-                                Summary
-                            </button>
-                        </td>
-                        <td>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-warning btn-sm"
+                            data-toggle="modal" data-target="#recipe-modal"
+                            data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
+                            data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
+                            data-recipe-title="{{ recipe.title|striptags|safe }}"
+                            data-recipe-ingredients="{{ (recipe.formatted_ingredients|default('No ingredients provided'))|striptags|safe }}"
+                            data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
+                            data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}"
+                            onclick="highlightButton(this);">
+                            Summary
+                        </button>
+                    </td>
+                    <td>
                         <button class="btn btn-outline-primary btn-sm"
                             data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
                             data-toggle="modal" data-target="#zoom-modal"
-                            data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
+                            data-recipe-id="{{ recipe.id }}"
+                            data-image-url="{{ recipe.image }}"
                             data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
                             onclick="highlightButton(this);">Zoom</button>
                     </td>
-                    <td class="text-center">{{ recipe.date_created.strftime('%Y-%m-%d %H:%M') }}
+                    <td class="text-center">{{
+                        recipe.date_created.strftime('%Y-%m-%d %H:%M') }}
                     </td>
-                    
+
                     <td>
                         {% if recipe.user == current_user %}
                         <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}"
@@ -111,23 +114,25 @@
                             class="btn btn-danger">Delete</a>
                         {% endif %}
 
-                                {% if current_user.is_authenticated %}
-                                <form method="post" action="{{ url_for('toggle_favorite') }}"
-                                    class="d-inline favorite-form">
-                                    {{ form.csrf_token }}
-                                    <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
-                                    {% if current_user in
-                                    recipe.favorited_by %}
-                                    <input type="submit" value="Unfavorite"
-                                        class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
-                                        data-is-favorite="true">
-                                    {% else %}
-                                    <input type="submit" value="Favorite"
-                                        class="btn btn-outline-success btn-sm me-auto toggle-favorite"
-                                        data-is-favorite="true">
-                                    {% endif %}
-                                </form>
-                                {% endif %}
+                        {% if current_user.is_authenticated %}
+                        <form method="post"
+                            action="{{ url_for('toggle_favorite') }}"
+                            class="d-inline favorite-form">
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="recipe_id"
+                                value="{{ recipe.id }}" />
+                            {% if current_user in
+                            recipe.favorited_by %}
+                            <input type="submit" value="Unfavorite"
+                                class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
+                                data-is-favorite="true">
+                            {% else %}
+                            <input type="submit" value="Favorite"
+                                class="btn btn-outline-success btn-sm me-auto toggle-favorite"
+                                data-is-favorite="true">
+                            {% endif %}
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endif %}
@@ -189,7 +194,7 @@
 
 
 <script>
-   $(function () {
+    $(function () {
         const modal = $("#recipe-modal");
         const image = modal.find("img");
 
@@ -232,12 +237,12 @@
             }, 7000, button);
         });
     });
-    
-            $(function () {
-        const zoomModal = $("#zoom-modal");
-            const zoomImage = zoomModal.find("#zoom-image");
 
-            zoomModal.on("show.bs.modal", function (event) {
+    $(function () {
+        const zoomModal = $("#zoom-modal");
+        const zoomImage = zoomModal.find("#zoom-image");
+
+        zoomModal.on("show.bs.modal", function (event) {
             const button = $(event.relatedTarget);
             const imageUrl = button.data("image-url");
             const recipeSummary = button.data("recipe-summary");
@@ -247,7 +252,7 @@
             $("#recipe-summary").text(recipeSummary);
         });
     });
-    
+
 </script>
 
 {% endblock %}

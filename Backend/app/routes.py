@@ -37,7 +37,7 @@ def get_top_favorited_recipes(limit=10):
 def home():
     form = SearchForm()
     sort_by = request.args.get('sort_by', 'title')
-    order = request.args.get('order', 'asc')
+    order = request.args.get('title', 'asc')
     page = request.args.get('page', 1, type=int)
     per_page = 275
     username = None
@@ -163,8 +163,6 @@ def roulette():
     # Get current page from query parameter or default to 1
     current_page = int(request.args.get('page', 1))
 
-    # Add dummy recipes to the valid recipes list if it's the last page
-
     # Slice the recipes list to show only the recipes for the current page
     start_index = (current_page - 1) * recipes_per_page
     end_index = start_index + recipes_per_page
@@ -188,8 +186,9 @@ def account():
     recipe_title = None
     search_term = form.search_term.data
     
-    
-    recipe_query = Recipe.query.join(Recipe.favorited_by).filter(User.id == current_user.id)
+    # Query User favorite recipes, excluding those with missing titles
+    recipe_query = Recipe.query.join(Recipe.favorited_by).filter(User.id == current_user.id, Recipe.title != None, Recipe.image != None)
+
 
     recipe = None
     pagination = None
@@ -228,6 +227,7 @@ def account():
                 current_user.favorites.append(recipe)
                 db.session.commit()
                 flash(f'{recipe.title} added to favorites.', 'success')
+                
             
             # Filter out recipes with missing data
    
@@ -245,6 +245,10 @@ def fullmenu():
     # Query all recipes from the database
     recipes = Recipe.query
     
+    # Exclude null recipes from page
+    recipes = recipes.filter(Recipe.title.isnot(None), Recipe.image.isnot(None))
+
+    
     # Apply the search filter if a search query is submitted
     if form.validate_on_submit():
         search_term = form.search_term.data
@@ -257,8 +261,6 @@ def fullmenu():
     store_database_recipes(recipes, user_id)  # Pass the user_id to the store_recipes function
     
     return render_template('full_menu.html', recipes=recipes, form=form, sort_by=sort_by, order=order, total_results=len(recipes), search_term=search_term)
-
-
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -309,7 +311,7 @@ def results(search_term, page=1):
         return render_template('results.html', form=form, results=results_data, total_results=total_results, total_pages=total_pages, current_page=page, search_term=search_term)  # Return the results.html template
     else:
         flash('Error in API request')
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
 @app.route('/toggle_favorite', methods=['POST'])
 @login_required
@@ -422,20 +424,16 @@ def logout():
 
 #****DELETE****DELETE***DELETE*****
 # Delete a recipe from the database
-@app.route('/delete/<recipe_id>')
+@app.route('/delete_null_recipes', methods=['POST'])
 @login_required
-def delete_recipe(recipe_id):
-    # Null deletions
-    delete_null_title_recipes()
-    recipe_to_delete = Recipe.query.get_or_404(recipe_id)
-    if recipe_to_delete.user != current_user:
-        flash("You do not have permission to delete this post", "danger")
-        return redirect(url_for('login'))
-    # Delete the recipe
-    db.session.delete(recipe_to_delete)
+def delete_null_recipes():
+    null_recipes = Recipe.query.filter((Recipe.title.is_(None)) | (Recipe.image.is_(None))).all()
+    for recipe in null_recipes:
+        db.session.delete(recipe)
     db.session.commit()
-    flash(f"{recipe_to_delete.title} has been deleted", "info")
-    return redirect(url_for('account'))
+    flash(f"Null recipes have been deleted", "info")
+    return redirect(url_for('fullmenu'))
+
 
 @app.route('/recipe')
 def recipe():
