@@ -1,18 +1,19 @@
 {% extends 'base.html' %}
-     
+
 {% block title %} Roulette! {% endblock %}
 
 {% block header %}
 <h3>Welcome to Roulette {{ current_user.username.title() }}!</h3>
 {% if current_user.is_authenticated %}
-<h6><div class="rules-section">
-    <p> Here's how it works:</p>
+<h6>
+    <div class="rules-section">
+        <p> Here's how it works:</p>
         <li>You are presented with 21 random
             recipes.</li>
         <li>From this selection, you can choose to "favorite" one
             recipe. Once
             favorited, the list will reset!</li>
-        <li>If none of the recipes catch your eye, simply hit 
+        <li>If none of the recipes catch your eye, simply hit
             {% if request.path == '/roulette' %}
             {% if current_user.is_authenticated %}
             <div class="navbar-nav ms-auto">
@@ -21,19 +22,20 @@
                         class="btn btn-outline-light">Refresh</button>
                 </div>
             </div>{% endif %}{% endif %}
-          </li>
-   
-</div></h6>
-<div class="col-lg-4">
-    
+        </li>
+
     </div>
+</h6>
+<div class="col-lg-4">
+
+</div>
 </div>
 <small>
     <div class="container" style="border-radius: 2px">
         <div class="col-col-3 -md-3 ">
-    
+
             <form action="{{ url_for('search') }}" method="GET" class="d-flex">
-               
+
                 {{ form.csrf_token }}
                 {{ form.search_term(class="form-control ml-2 me-2",
                 placeholder="Search by ingredients") }}
@@ -50,9 +52,9 @@
     {% block content %}
     {% if current_user.is_authenticated %}
     {% if recipes %}
-<div class="container d-flex" style="border-radius: 2px">
-    <div class="row row-cols-1 row-cols-md-5 mt-4">
-   
+    <div class="container d-flex" style="border-radius: 2px">
+        <div class="row row-cols-1 row-cols-md-5 mt-4">
+
             {% for recipe in recipes %}
             {% if recipe %}
             <div class="col mb-0 mt-4">
@@ -108,16 +110,16 @@
             {% endif %}
             {% endfor %}
         </div>
-       
+
     </div>
-{% if request.path == '/roulette' %}
-{% if current_user.is_authenticated %}
-<div class="navbar-nav ms-auto">
-    <div class="d-flex mb-5 ">
-        <button onclick="location.reload()"
-            class="btn btn-outline-secondary">Refresh</button>
-    </div>
-</div>{% endif %}{% endif %}
+    {% if request.path == '/roulette' %}
+    {% if current_user.is_authenticated %}
+    <div class="navbar-nav ms-auto">
+        <div class="d-flex mb-5 ">
+            <button onclick="location.reload()"
+                class="btn btn-outline-secondary">Refresh</button>
+        </div>
+    </div>{% endif %}{% endif %}
 
     {% endif %}
     <!-- Modal -->
@@ -203,7 +205,7 @@
                     <li
                         class="page-item {% if current_page == 1 %}disabled{% endif %}">
                         <a class="page-link"
-                            href="{{ url_for('index', page=current_page-1) }}"
+                            href="{{ url_for('roulette', page=current_page-1) }}"
                             {% if current_page==1 %}aria-disabled="true" {%
                             endif %}>Previous</a>
                     </li>
@@ -211,14 +213,14 @@
                     <li
                         class="page-item {% if current_page == i %}active{% endif %}">
                         <a class="page-link"
-                            href="{{ url_for('index', page=i) }}">{{
+                            href="{{ url_for('roulette', page=i) }}">{{
                             i }}</a>
                     </li>
                     {% endfor %}
                     <li
                         class="page-item {% if current_page == total_pages %}disabled{% endif %}">
                         <a class="page-link"
-                            href="{{ url_for('index', page=current_page+1) }}"
+                            href="{{ url_for('roulette', page=current_page+1) }}"
                             {% if current_page==total_pages
                             %}aria-disabled="true" {% endif %}>Next</a>
                     </li>

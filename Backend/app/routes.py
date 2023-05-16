@@ -32,6 +32,13 @@ def get_top_favorited_recipes(limit=10):
     
     return get_filtered_recipes(top_favorited_recipes)
 
+
+@app.route('/index', methods=['GET', 'POST'])
+@login_required
+def index():
+    search_form = forms.SearchForm()  # Create an instance of the search form
+    return render_template('index.html', title='Index', form=search_form,  )  
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/home', methods=['GET', 'POST'])
 def home():
@@ -419,7 +426,7 @@ def login():
 def logout():
     logout_user()
     flash("You have logged out", "info")
-    return redirect(url_for('home'))
+    return render_template('logout.html')
 
 
 #****DELETE****DELETE***DELETE*****

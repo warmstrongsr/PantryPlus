@@ -1,163 +1,36 @@
-{% extends 'base.html' %}
+<!-- {% extends 'base.html' %} -->
 
-{% block title %} Roulette! {% endblock %}
+{% block title %} Index {% endblock %}
 
 {% block header %}
-<h3>Recipe Roulette</h3>
-{% if current_user.is_authenticated %}
-<h6>Nice to see you again, {{ current_user.username.title() }}!</h6>
-<div class="container" style="border-radius: 2px">
-    <div class="col-col-3 -lg-3 ">
-        <form action="{{ url_for('search') }}" method="GET" class="d-flex">
-            {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search
-            by ingredients") }}
-            <button class="btn btn-outline-light" type="submit">Search</button>
-        </form>
-    </div>
-</div>
-{% else %}
-<h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
-{% endif %}
+<!-- Add the ID to the image element -->
+<img id="firstIndexGif"
+   <img id="exampleGif" src="{{ url_for('static', filename='images/2.gif') }}" alt="Pantry Plus gif">
 {% endblock %}
 
-{% block content %}
-{% if current_user.is_authenticated %}
-{% if recipes %}
-<div class="container" style="border-radius: 2px">
-    <div class="row row-cols-1 row-cols-md-5 mt-4">
-        {% for recipe in recipes %}
-        {% if recipe %}
-        <div class="col mb-0 mt-4">
-            <div class="card h-100">
-                <img src="{{ recipe.image }}" class="card-img-top"
-                    alt="{{ recipe.title }}">
-                <div class="card-body text-center">
-                    <div class="card-content">
-                        <h6>
-                            <span
-                                class="title-link show-warning-modal text-primary text-decoration-underline"
-                                data-recipe-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                                style="cursor:pointer;">{{ recipe.title
-                                }}</span>
-                        </h6>
-                    </div>
-    <div class="button-container">
-        <div class="button-row my-0">
-    
-            <button class="btn btn-outline-warning btn-sm highlight-button"
-                data-toggle="modal" data-target="#recipe-modal"
-                data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
-                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                data-recipe-title="{{ recipe.title|striptags|safe }}"
-                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}"
-                data-recipe-instructions="{{ (recipe.instructions|default('No instructions provided'))|striptags|safe }}">
-                Summary
-            </button>
-    
-            <button class="btn btn-outline-primary btn-sm highlight-button"
-                data-recipe-source-url="{{ 'https://spoonacular.com/recipes/' + recipe.title.split(' ')|join('-') + '-' + recipe.id|string }}"
-                data-toggle="modal" data-target="#zoom-modal"
-                data-recipe-id="{{ recipe.id }}" data-image-url="{{ recipe.image }}"
-                data-recipe-summary="{{ (recipe.summary|default('No summary provided'))|striptags|safe}}">Zoom</button>
-    
-            {% if current_user.is_authenticated %}
-            <form method="post" action="{{ url_for('toggle_favorite') }}"
-                class="d-inline favorite-form">
-                {{ form.csrf_token }}
-                <input type="hidden" name="recipe_id" value="{{ recipe.id }}" />
-                {% if current_user in recipe.favorited_by %}
-                <input type="submit" value="Unfavorite"
-                    class="btn btn-outline-danger btn-sm me-auto toggle-favorite"
-                    data-is-favorite="true">
-                {% else %}
-                <input type="submit" value="Favorite"
-                    class="btn btn-outline-success btn-sm me-auto toggle-favorite"
-                    data-is-favorite="true">
-                {% endif %}
-            </form>
-            {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-</div>
+<style>
+body {
+	background-image: url("../static/images/2.gif");
+    }
+     
+    .fade-out {
+        opacity: 0;
+        transition: opacity 1s;
+        }
+   
+</style>
 
-{% endif %}
-<!-- Modal -->
-<div class="modal fade" id="recipe-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title">{{ recipe.title }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <img src="{{ recipe.image }}" alt="{{ recipe.title }}">
-            <p>{{ recipe.summary }}</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary"
-                data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-        </div>
-    </div>
-                    <div class="col-md-6">
-                        <img src="" class="img-fluid" alt="Recipe Image">
-                    </div>
-                    <!-- Inside the modal -->
-                    <div class="col-md-6">
-                        <h6 class="modal-title">Recipe preview:</h6>
-                        <p id="recipe-instructions"></p>
-                    </div>
-                </div>
-                {% for recipe in recipes %}
-                <h5 class="modal-title" id="modal-recipe-title"></h5>
+{% block scripts %}
+<script>
+    // Fetch the element
+    var firstIndexGif = document.getElementById("firstIndexGif");
 
-                {% else %}
-                <h5 class="modal-title">No recipes found</h5>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
-{% endif %}
-
-<!-- Warning Modal -->
-<div class="modal fade" id="warning-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Warning</h5>
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>You will be redirected to an external website,
-                    <a href="#" class="modal-title-link"
-                        id="warning-recipe-title" target="_blank"
-                        rel="noopener noreferrer"></a>.
-                    Click outside the modal or on the "X" button to stay on this
-                    page.
-                </p>
-            </div>
-            <div class="modal-footer">
-
-                <button type="button" class="btn btn-secondary close close"
-                    data-dismiss="modal">Back</button>
-                <button type="button" class="btn btn-primary"
-                    id="continue-external">Continue</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
+    // Check if the element is present on the page
+    if (firstIndexGif) {
+        // Add the event listener
+        firstIndexGif.onclick = function () {
+            this.classList.add("fade-out");
+        };
+    }
+</script>
 {% endblock %}
