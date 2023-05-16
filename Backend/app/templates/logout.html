@@ -1,0 +1,34 @@
+<!-- {% extends 'base.html' %} -->
+
+{% block title %} Index {% endblock %}
+
+{% block header %}
+<!-- Add the ID to the image element -->
+<img id="logoutGif" <img id="exampleGif"
+    src="{{ url_for('static', filename='images/2.gif') }}"
+    alt="Pantry Plus gif">
+{% endblock %}
+<style>
+    body {
+        background-color: tan;
+    }
+
+    .fade-out {
+        opacity: 0;
+        transition: opacity 2s;
+    }
+</style>
+{% block scripts %}
+<script>
+    // Fetch the element
+    var logoutGif = document.getElementById("logoutGif");
+
+    // Check if the element is present on the page
+    if (firstIndexGif) {
+        // Add the event listener
+        firstIndexGif.onclick = function () {
+            this.classList.add("fade-out");
+        };
+    }
+</script>
+{% endblock %}
