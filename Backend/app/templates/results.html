@@ -18,8 +18,7 @@ search_term.title() }}" and {{ total_pages }} pages.{% endblock %}
     <div class="col-col-3 -lg-3 ">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }}
-            {{ form.search_term(class="form-control me-2", placeholder="Search
-            by ingredients") }}
+            {{ form.search_term(class="form-control me-2", placeholder="Search by ingredients") }}
             <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
     </div>

@@ -4,26 +4,24 @@
 
 {% block header %}
 <!-- Add the ID to the image element -->
-<img id="firstIndexGif"
-   <img id="exampleGif" src="{{ url_for('static', filename='images/2.gif') }}" alt="Pantry Plus gif">
+<img id="logoutGif" <img id="exampleGif"
+    src="{{ url_for('static', filename='images/2.gif') }}"
+    alt="Pantry Plus gif">
 {% endblock %}
-
 <style>
-body {
-	background-image: url("../static/images/2.gif");
+    body {
+        background-color: tan;
     }
-     
+
     .fade-out {
         opacity: 0;
-        transition: opacity 1s;
-        }
-   
+        transition: opacity 2s;
+    }
 </style>
-
 {% block scripts %}
 <script>
     // Fetch the element
-    var firstIndexGif = document.getElementById("firstIndexGif");
+    var logoutGif = document.getElementById("logoutGif");
 
     // Check if the element is present on the page
     if (firstIndexGif) {
