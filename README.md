@@ -1,13 +1,22 @@
-# PantryPlus
-CRUD recipe app.  Find by ingredients, database search, user personal menu, and random recipe game all included. 
+Pantry Plus - Coding Temple Software Engineering Graduate capstone project.
 
-Users have access to the home page,(and the homepage only) if not signed up and logged in.  All authenticated users have access to current menu search, find by ingredients, database search, and Recipe Roulette. What you see on the home page is a distinct list of recipes that, at the very least have a link, title, and summary, (for some reason the blank covered plate picture counts as a picture so you may still see a few of those here or there.  The current top in point heavy ingredients search has a maximum of 100 results that I have split into 25 per page groupings.
+Technologies: HTML, CSS, JavaScript, Flask, SQLite, Jinja 2, JSON, Spoonacular API, Postman, Virtual Environment
 
-Fellow developers:
-If you intend on putting this application together for further testing you will need, (or atleast I reccomend) a virtual environment, access to flask and pip to install requirements.txt. You will also need a spooncular API key and keep in mind that this application is coded to update missing information as the user utilizes the random and find by ingredients search which can be quite costly in the points department.  Any new recipes are added to the database and as such available to users, (again. authenticated) as it grows. With that continued growth I will continue to refactor the usage of the database as it is less costly and I can pick what I would like to make available to the user, (recipe, ingredients, summary, and instructions at the moment).  Spoonacular API disperses these categories in different ways. Find by ingredients will get you a summary and ingredients, random searh will net you instructions and so on. I reccomend the use of Postman for testing these different approaches.  I graduated Coding Temple software engineer boot camp a few weeks ago and my application was okay but it was admittedly a brazen attempt at using as many technologies as possible.  React was certainly under-estimated by most of us.  But that is why I continue to code, because I love it and look forward to the continous learning. I'm a little late to party but this is where Ive  always should have been  I wish you all well.  Be safe.  William "Will" Armstong SR.
+Developed a full-stack web application for recipe management using Flask backend and HTML, CSS, and JavaScript frontend, facilitating users to search recipes, find by ingredients, create a personal menu, and play a random recipe game
+Implemented user authentication system, allowing only signed-in users to access features beyond the homepage such as current menu search, find by ingredients, database search, and Recipe Roulette
+
+Leveraged Spoonacular API to fetch and update missing information dynamically as users interact with the search features, enhancing application data accuracy and user experience
+Established a robust testing environment using Postman and a virtual environment, facilitating extensive application testing and bug identification
+Applied pagination to handle large search results efficiently, displaying 100 results into 4 groups of 25 each, enhancing user navigation experience
+Programmed application to add new recipes to the database as they are discovered, incrementally expanding the available options for users
 
 Future Plans:
-I intend on implementing React front end and Postgres SQL backend for the larger loads of additional recipes.  Based on my search of random foods daily I was able to accumulate over 2000 recipes.    
+
+Plan to implement a React frontend and Postgres SQL backend to handle larger recipe loads; managed to accumulate over 2000 recipes during daily random food searches
+Intend to continue refining and expanding the application as part of the continuous learning journey post the completion of the Coding Temple software engineer boot camp
+Personal Note:
+
+As a recent graduate of Coding Temple's software engineering boot camp, I am committed to continuous learning and refining my skills. I am passionate about coding and am excited about the journey ahead. I look forward to furthering my experience and learning new technologies, starting with furthering my knowledge of React and Postgres SQL.  
 
 ![Example GIF](home.Animation.gif)
 ![Example GIF](find_by_ingredientsgreenbeans.Animation.gif)
