@@ -2,7 +2,7 @@
 %} {% if current_user.is_authenticated %}
 <h2>Nice to see you again, {{ current_user.username.title() }}!</h2>
 <div class="container">
-    <div class="col-col-3 -lg-3">
+    <div class="col-col-3 -lg-3 mb-3">
         <form action="{{ url_for('search') }}" method="GET" class="d-flex">
             {{ form.csrf_token }} {{ form.search_term(class="form-control me-2",
             placeholder="Search by ingredients") }}
@@ -13,6 +13,9 @@
 {% else %}
 <h6>Please Sign Up or Log In to Create or Update Your Menu</h6>
 <style>
+    body {
+	background-color: black;
+    }
 .button-row > *:first-child {
     margin-right: 0.2em;
 }
@@ -37,8 +40,6 @@
 {% endif %} {% endblock %}
 {% block content %}
 <style>
-
-
     .card-small {
         width: 200px;
     }
@@ -46,11 +47,6 @@
     .zoom-image {
         max-width: 80%;
     }
-
-
-
-    
-
 </style>
 
 

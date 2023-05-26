@@ -6,14 +6,14 @@ body {
 	background-color: yellow;
 } */
 
-.firstIndexGif {
+/* .firstIndexGif {
 	background-image: url("/Backend/app/static/images/2.gif");
 	height: 40%;
 	max-width: 100%;
 	object-fit: contain;
-	background-size: 1300px 250px;
+	background-size: 1300px 250px; */
 
-}
+
 .card-body {
 	display: flex;
 	flex-direction: column;

@@ -310,7 +310,7 @@ def results(search_term, page=1):
 
         # Store the fetched recipes in the database
         if current_user.is_authenticated and current_user.is_active:
-            store_recipes(results_data, current_user.id)
+            # store_recipes(results_data, current_user.id)
             print(store_database_recipes)
 
         total_results = len(all_results_data)  # Get the total number of results
