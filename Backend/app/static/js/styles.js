@@ -120,47 +120,47 @@ function showRecipe(recipe) {
 		recipe.instructions;
 }
 
-if (document.getElementById("account-page")) {
-	// Your function here will only run if the element with id 'account-page' exists
-	$(function () {
-		$(".favorite-form").on("submit", function (event) {
-			var form = $(this);
-			var button = form.find(".toggle-favorite");
-			var isFavorite = button.data("is-favorite");
-			var recipeId = form.find("input[name='recipe_id']").val();
+// if (document.getElementById("account-page")) {
+// 	// Your function here will only run if the element with id 'account-page' exists
+// 	$(function () {
+// 		$(".favorite-form").on("submit", function (event) {
+// 			var form = $(this);
+// 			var button = form.find(".toggle-favorite");
+// 			var isFavorite = button.data("is-favorite");
+// 			var recipeId = form.find("input[name='recipe_id']").val();
 
-			$.ajax({
-				url: "/toggle_favorite",
-				method: "POST",
-				data: { recipe_id: recipeId },
-				success: function (response) {
-					location.reload(true);
-					// Update the isFavorite data
-					isFavorite = !isFavorite;
-					button.data("is-favorite", isFavorite);
+// 			$.ajax({
+// 				url: "/toggle_favorite",
+// 				method: "POST",
+// 				data: { recipe_id: recipeId },
+// 				success: function (response) {
+// 					location.reload(true);
+// 					// Update the isFavorite data
+// 					isFavorite = !isFavorite;
+// 					button.data("is-favorite", isFavorite);
 
-					// Toggle the button text based on the current state
-					if (isFavorite) {
-						button.val("Favorite");
-						button.addClass("btn-outline-success");
-						button.removeClass("btn-outline-danger");
-					} else {
-						button.val("Unfavorite");
-						button.removeClass("btn-outline-success");
-						button.addClass("btn-outline-danger");
+// 					// Toggle the button text based on the current state
+// 					if (isFavorite) {
+// 						button.val("Favorite");
+// 						button.addClass("btn-outline-success");
+// 						button.removeClass("btn-outline-danger");
+// 					} else {
+// 						button.val("Unfavorite");
+// 						button.removeClass("btn-outline-success");
+// 						button.addClass("btn-outline-danger");
 
-						// Remove the recipe card from the DOM
-						// 	$("#recipe-card-" + recipeId).remove();
-					}
+// 						// Remove the recipe card from the DOM
+// 						// 	$("#recipe-card-" + recipeId).remove();
+// 					}
 
-					// Show a flash message if necessary
-					var flashMessage = response.flash_message;
-					if (flashMessage) {
-						// Display the flash message to the user
-						alert(flashMessage);
-					}
-				},
-			});
-		});
-	});
-}
+// 					// Show a flash message if necessary
+// 					var flashMessage = response.flash_message;
+// 					if (flashMessage) {
+// 						// Display the flash message to the user
+// 						alert(flashMessage);
+// 					}
+// 				},
+// 			});
+// 		});
+// 	});
+// }
