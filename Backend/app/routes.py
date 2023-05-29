@@ -22,15 +22,15 @@ def get_filtered_recipes(recipes):
     return [recipe for recipe in recipes if recipe.has_required_info()]
 
 # Example to follow
-def get_top_favorited_recipes(limit=10):
-    top_favorited_recipes = db.session.query(Recipe, db.func.count(favorites.c.user_id).label('total_favorites'))\
-        .join(favorites)\
-        .group_by(Recipe)\
-        .order_by(db.desc('total_favorites'))\
-        .limit(limit)\
-        .all()
+# def get_top_favorited_recipes(limit=10):
+#     top_favorited_recipes = db.session.query(Recipe, db.func.count(favorites.c.user_id).label('total_favorites'))\
+#         .join(favorites)\
+#         .group_by(Recipe)\
+#         .order_by(db.desc('total_favorites'))\
+#         .limit(limit)\
+#         .all()
     
-    return get_filtered_recipes(top_favorited_recipes)
+#     return get_filtered_recipes(top_favorited_recipes)
 
 
 @app.route('/index', methods=['GET', 'POST'])
