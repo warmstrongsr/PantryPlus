@@ -12,10 +12,10 @@ Programmed application to add new recipes to the database as they are discovered
 
 Future Plans:
 
-Plan to implement a React frontend and Postgres SQL backend to handle larger recipe loads; managed to accumulate over 2000 recipes during daily random food searches
-Intend to continue refining and expanding the application as part of the continuous learning journey post the completion of the Coding Temple software engineer boot camp
-Personal Note:
+Plan to implement a React frontend and Postgres SQL backend to handle larger recipe loads; managed to accumulate over 2000 recipes during daily random food searches.
+I intend to continue refining and expanding the application as part of the continuous learning journey post the completion of the Coding Temple software engineer boot camp
 
+Personal Note:
 As a recent graduate of Coding Temple's software engineering boot camp, I am committed to continuous learning and refining my skills. I am passionate about coding and am excited about the journey ahead. I look forward to furthering my experience and learning new technologies, starting with furthering my knowledge of React and Postgres SQL.  
 
 ![Example GIF](home.Animation.gif)
